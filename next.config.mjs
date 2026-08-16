@@ -4,5 +4,6 @@ const nextConfig = {
   transpilePackages: ['three'],
   typescript: { ignoreBuildErrors: true },
   eslint: { ignoreDuringBuilds: true },
+  outputFileTracing: false,
 }
 export default nextConfig
