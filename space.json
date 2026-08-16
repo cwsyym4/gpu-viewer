@@ -1,0 +1,8 @@
+{
+  "runtime": "static",
+  "platformVersion": 15,
+  "entry": "index.html",
+  "name": "H100 Clone",
+  "slug": "h100-clone",
+  "managedCronJobs": []
+}
