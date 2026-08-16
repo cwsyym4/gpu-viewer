@@ -3,7 +3,7 @@ export type Vec2 = [number, number]
 export type HBMKind = 'memory' | 'structural'
 export interface PackageSite { position: Vec2; kind: HBMKind }
 export type ProvenanceLevel = 'gpu' | 'superchip' | 'tray' | 'rack' | 'die'
-export type ProvenanceStatus = 'official' | 'derived' | 'estimated' | 'illustrative'
+export type ProvenanceStatus = 'official' | 'derived' | 'estimated' | 'illustrative' | 'speculative'
 export interface ProvenanceEntry {
   level: ProvenanceLevel
   field: string
@@ -19,11 +19,16 @@ export interface RealDimsMm { boardMm?: [number, number]; packageMm?: [number, n
 export interface GPUSpec extends RenderDims, RealDimsMm {
   id: string; label: string; module: string
   dieTileColumns: number; dieTileRows: number
+  gpcCount?: number
+  smPerGpc?: number
+  smCountsPerGpc?: number[] // per GPC SM counts for accurate H100 132 case
   packageSites: PackageSite[]; mountingHoles: Vec2[]; leftPowerStages: Vec2[]; rightPowerStages: Vec2[]; topClampPositions: number[]; sideContacts: number[]
   hbm: { count: number; version: 'hbm3'|'hbm3e'|'hbm4'|'hbm4e'; gbPerStack: number; totalGB: number; rawGB?: number; usableGB?: number }
   dualDie?: boolean; nvlink?: boolean; interposer?: boolean
   transistorsB?: number; smCount?: number; tdpW?: number; memoryBW_TBs?: number; nvlinkBW_TBs?: number; c2cBW_GBs?: number
+  fp8_TFLOPS?: number; fp16_TFLOPS?: number // for Rubin correction
   provenance?: ProvenanceEntry[]
+  speculative?: boolean
 }
 export interface SuperchipSpec {
   id: string; label: string; level: 'superchip'
@@ -34,7 +39,7 @@ export interface SuperchipSpec {
   provenance: ProvenanceEntry[]; contains: { gpus: string[]; cpus: string[] }
 }
 export interface ComputeTraySpec { id: string; label: string; level: 'tray'; superchipIds: string[]; trayCountInRack: number; gpusPerTray: number; cpusPerTray: number; provenance: ProvenanceEntry[] }
-export interface RackSpec { id: string; label: string; level: 'rack'; traySpecId: string; trayCount: number; totalGPUs: number; totalCPUs: number; nvlinkDomain_TBs: number; nvlinkVersion: string; c2cPerSuperchip_GBs: number; provenance: ProvenanceEntry[]; workloadImplications?: string }
+export interface RackSpec { id: string; label: string; level: 'rack'; traySpecId: string; trayCount: number; totalGPUs: number; totalCPUs: number; nvlinkDomain_TBs: number; nvlinkVersion: string; c2cPerSuperchip_GBs: number; provenance: ProvenanceEntry[]; workloadImplications?: string; speculative?: boolean }
 export type GPUPartId = 'cuda-architecture'|'gpu-ram'|'gpc'|'sm'|'tensor-core'|'cuda-core'|'tma'|'nvlink'|'grace-cpu'|'board'|'package'|'power'|'interconnect'|'structure'
 export interface PartDef { id: GPUPartId; index: string; title: string; abbreviation?: string; description: string; glossaryUrl: string; view: 'exterior'|'architecture'|'system'; anchor: Vec3; onlyFor?: string[]; semanticColorKey?: 'compute'|'memory'|'interconnect'|'power'|'structure'|'interaction' }
 export function validateSpec(spec: GPUSpec): string[] {
@@ -49,6 +54,14 @@ export function validateSpec(spec: GPUSpec): string[] {
   const totalCalc = spec.hbm.count * spec.hbm.gbPerStack
   const usable = spec.hbm.usableGB ?? spec.hbm.totalGB
   if(totalCalc !== spec.hbm.totalGB && totalCalc !== (spec.hbm.rawGB ?? spec.hbm.totalGB)) { if(Math.abs(totalCalc - usable) > 1) errs.push('totalGB mismatch') }
+  if(spec.smCount && spec.gpcCount && spec.smPerGpc) {
+    const implied = spec.gpcCount * spec.smPerGpc
+    // allow disabled SMs case e.g. 8*18=144 vs 132 enabled; but warn if too far
+    if(spec.smCountsPerGpc) {
+      const sum = spec.smCountsPerGpc.reduce((a,b)=>a+b,0)
+      if(sum !== spec.smCount) errs.push(`smCountsPerGpc sum ${sum} != smCount ${spec.smCount}`)
+    }
+  }
   return errs
 }
 export type WorkloadKind = 'dense-training'|'moe-training'|'moe-inference'|'long-context'|'recsys'|'memory-bound'|'comm-bound'|null

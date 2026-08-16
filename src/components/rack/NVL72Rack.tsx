@@ -1,23 +1,102 @@
 'use client'
 import { palette } from '@/lib/materials/palette'
-export function NVL72Rack({ specId }: { specId?:string }){
+import { getRackSafe, getSuperchipSafe, getSpecSafe } from '@/lib/definitions'
+import type { RackSpec, SuperchipSpec } from '@/lib/definitions/types'
+import { RoundedBox, Html } from '@react-three/drei'
+
+export function NVL72Rack({ specId, workloadActiveIds, selected }: { specId?:string, workloadActiveIds?:string[], selected?:string }){
+  // @ts-ignore rack safe may be null
+  const rack: any = getRackSafe(specId ?? 'blackwell-gb200') as any ?? getRackSafe('blackwell-gb200') as any
+  const spec = getSpecSafe(specId ?? 'blackwell-gb200')
+  const isRubin = specId==='rubin-r100'
+  const gpuColor = isRubin ? '#8fe8ff' : palette.package
+  const dim = !!workloadActiveIds?.length
+  const trayCount = rack?.trayCount ?? 18
+  const gpusPerTray = rack?.gpusPerTray ?? (rack?.totalGPUs ? Math.ceil(rack.totalGPUs/trayCount) : 4)
+
   return (
     <group data-testid="rack-nvl72">
-      {Array.from({length:18}).map((_,i)=>(
-        <group key={i} position={[0, i*0.28, 0]} data-testid={`tray-${i}`}>
-          <mesh><boxGeometry args={[4,0.18,2]} /><meshStandardMaterial color={palette.rackMetal} /></mesh>
-        </group>
-      ))}
-      <mesh data-testid="rack-spine"><boxGeometry args={[0.12,5.5,0.2]} /><meshStandardMaterial color={palette.rackSpine} /></mesh>
+      {/* spine */}
+      <group position={[1.9,2.4,0] as any}>
+        <mesh data-testid="rack-spine"><boxGeometry args={[0.18,6.2,0.32] as any} /><meshStandardMaterial color={(palette as any).rackSpine ?? "#2a2a2a"} /></mesh>
+        <mesh position={[0.18,0,0] as any}><boxGeometry args={[0.06,5.8,0.04] as any} /><meshStandardMaterial color={palette.nvlinkPulse} emissive={palette.nvlinkPulse} emissiveIntensity={0.6} /></mesh>
+      </group>
+
+      {Array.from({length: trayCount}).map((_,trayIdx)=>{
+        const y = trayIdx*0.34
+        const activeTray = !selected || selected==='rack' || (selected as any)==='tray'
+        return (
+          <group key={trayIdx} position={[0,y,0] as any} data-testid={`tray-${trayIdx}`}>
+            <RoundedBox args={[4.2,0.18,2.2] as any} radius={0.03}>
+              <meshStandardMaterial color={(palette as any).rackMetal ?? "#1a1f1a"} transparent={dim && !activeTray} opacity={dim && !activeTray?0.3:0.9} />
+            </RoundedBox>
+            {/* Grace CPUs – 2 per tray */}
+            <group position={[-1.1,0.14,0.4] as any} data-testid={`grace-cpu-${trayIdx}-0`}>
+              <mesh><boxGeometry args={[0.72,0.08,0.54] as any} /><meshStandardMaterial color="#112233" emissive={selected==='grace-cpu' || workloadActiveIds?.includes('grace-cpu')?"#0ec7ff":"black"} emissiveIntensity={0.4} /></mesh>
+            </group>
+            <group position={[-1.1,0.14,-0.4] as any} data-testid={`grace-cpu-${trayIdx}-1`}>
+              <mesh><boxGeometry args={[0.72,0.08,0.54] as any} /><meshStandardMaterial color="#112233" emissive={selected==='grace-cpu'?"#0ec7ff":"black"} emissiveIntensity={0.4} /></mesh>
+            </group>
+            {/* 4 Blackwell / Rubin GPUs per tray */}
+            {Array.from({length: gpusPerTray}).map((__,gpuIdx)=>{
+              const active = selected==='gpu' || selected==='gpc' || selected==='tensor-core' || workloadActiveIds?.includes('gpc') || workloadActiveIds?.includes('sm')
+              const xoff = (gpuIdx-1.5)*0.82
+              return (
+                <group key={gpuIdx} position={[xoff+0.55,0.14,0] as any} data-testid={`rack-gpu-${trayIdx}-${gpuIdx}`}>
+                  <RoundedBox args={[0.7,0.08,0.5] as any} radius={0.02}>
+                    <meshStandardMaterial color={gpuColor} emissive={active?palette.compute:"black"} emissiveIntensity={active?0.45:0} transparent={dim && !active} opacity={dim && !active?0.25:0.95} />
+                  </RoundedBox>
+                  {gpuIdx===0 && trayIdx===0 && (
+                    <Html center position={[0,0.14,0] as any} style={{pointerEvents:'none'}}><div className="text-[9px] font-mono bg-black/60 text-white/60 px-1 rounded border border-white/10">{specId?.includes('rubin')?'R100':'B200'}</div></Html>
+                  )}
+                </group>
+              )
+            })}
+            {/* NVSwitch on tray */}
+            <group position={[1.45,0.14,0] as any} data-testid={`nvswitch-${trayIdx}`}>
+              <RoundedBox args={[0.42,0.07,0.68] as any} radius={0.02}>
+                <meshStandardMaterial color={palette.nvlinkBridge} emissive={palette.nvlinkPulse} emissiveIntensity={workloadActiveIds?.includes('nvlink')?0.9:0.55} transparent opacity={dim && !workloadActiveIds?.includes('nvlink') && selected!=='nvlink'?0.35:1} />
+              </RoundedBox>
+            </group>
+          </group>
+        )
+      })}
+      <Html center position={[0,6.8,0] as any}><div className="text-[12px] font-mono text-white/50 bg-black/50 px-2 py-1 rounded">{rack?.label ?? 'GB200 NVL72 18×4 GPUs 36 Grace 9 racks 72 GPUs domain 130TB/s'}</div></Html>
     </group>
   )
 }
+
 export function RackStats({ specId }: { specId?:string }){
+  const rack: any = getRackSafe(specId ?? 'blackwell-gb200') as any
+  const superchip: any = getSuperchipSafe(specId==='blackwell-gb200'?'blackwell-gb200': specId ?? 'blackwell-gb200') as any
+  const spec = getSpecSafe(specId ?? 'blackwell-gb200')
+  const isGB200 = specId==='blackwell-gb200'
+  const isRubin = specId==='rubin-r100'
+
+  if(isGB200){
+    const cpusPer = superchip?.cpu?.count ?? superchip?.cpusPerSuperchip ?? 1
+    const gpusPer = superchip?.gpus?.count ?? superchip?.gpusPerSuperchip ?? 2
+    return (
+      <div data-testid="rack-stats" className="absolute bottom-2 left-2 text-[12px] bg-black/70 border border-[#7fee64]/20 p-2 rounded text-white/75 font-mono leading-[1.35] pointer-events-none">
+        <div className="text-[#7fee64] font-semibold">GB200 NVL72 — 72 Blackwell GPUs fully NVLink domain 130TB/s 36 Grace CPUs 18 trays</div>
+        <div>Superchip: {cpusPer} Grace 72c Neoverse V2 + {gpusPer} Blackwell 208B ea {spec?.hbm.totalGB ?? 384} raw {(spec?.hbm.totalGB ? (spec.hbm.totalGB-12):372)} usable 16TB/s mem BW 3.6TB/s NVLink/superchip 900GB/s C2C</div>
+        <div>Tray: 2 Grace +4 Blackwell dual-die · Rack 18U = 72 GPUs / 36 Grace · Spine NVLink 130TB/s</div>
+      </div>
+    )
+  }
+  if(isRubin){
+    return (
+      <div data-testid="rack-stats" className="absolute bottom-2 left-2 text-[12px] bg-black/70 border border-[#0ec7ff]/30 p-2 rounded text-white/75 font-mono leading-[1.35] pointer-events-none">
+        <div className="text-[#8fe8ff] font-semibold">Vera Rubin NVL72 – 72 Rubin GPUs + 36 Vera CPUs 130TB/s NVLink5+ 9 racks 72 dom 288GB HBM4 22TB/s</div>
+        <div>BW: 22TB/s HBM4 · NVLink6 3.6TB/s/superchip · C2C 1.8TB/s · {spec?.fp8_TFLOPS ? `${spec.fp8_TFLOPS} PFLOPS FP8 dense` : '17.5 PFLOPS FP8 dense'} official July 2026 336B xtors 224 SMs</div>
+        <div>Tray: 2 Vera +4 Rubin</div>
+      </div>
+    )
+  }
   return (
-    <div data-testid="rack-stats" className="absolute bottom-2 left-2 text-[10px] bg-[#000a] border border-[#7fee64]/20 p-2 rounded text-white/70 font-mono">
-      <div>GB200 NVL72 — 72 Blackwell GPUs fully NVLink domain 130TB/s 36 Grace CPUs 18 trays</div>
-      <div>Superchip: 1 Grace 72c + 2 Blackwell 384 raw 372 usable 16TB/s 3.6TB/s NVL C2C 900GB/s</div>
-      <div>Tray: 2 Grace +4 Blackwell · Rack 72 GPUs / 36 Grace</div>
+    <div data-testid="rack-stats" className="absolute bottom-2 left-2 text-[12px] bg-black/60 border border-white/10 p-2 rounded text-white/60 font-mono">
+      <div>{rack?.label ?? `${specId} rack – ${rack?.totalGPUs ?? '?'} GPUs domain`} {spec?.hbm.totalGB ? `· ${spec.hbm.totalGB}GB HBM` : ''}</div>
+      {superchip && <div>Superchip: {superchip?.cpu?.count ?? superchip?.cpusPerSuperchip ?? '?'} CPU + {superchip?.gpus?.count ?? superchip?.gpusPerSuperchip ?? '?'} GPU · C2C {superchip?.c2cBW_GBs ?? superchip?.c2cPerSuperchip_GBs ?? '?'}GB/s · NVLink {superchip?.nvlinkBW_TBs ?? '?'}TB/s</div>}
     </div>
   )
 }

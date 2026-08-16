@@ -37,3 +37,17 @@ export const workloadOverlays: Record<Exclude<WorkloadKind,null>, WorkloadImplic
   'comm-bound': { kind:'comm-bound', illuminates:['nvlink','grace-cpu'], bottleneck:'Scale-up domain size 72 vs 144/576', description:'Communication-bound large batch or DP all-reduce.' },
 }
 export { YEAR_META, GPU_ORDER } from './meta'
+
+export function getRack(id:string){ return racks[id] }
+export function getRackSafe(id:string){ return racks[id] ?? racks['gb200-nvl72-rack'] ?? null }
+export function getSuperchip(id:string){ return superchips[id] ?? superchips['gb200-superchip'] }
+export function getSuperchipSafe(id:string){
+  // try by superchip id, otherwise map GPU id to its superchip
+  if(superchips[id]) return superchips[id]
+  if(id==='blackwell-gb200' || id==='gb200-superchip') return superchips['gb200-superchip']
+  // for other GPUs fallback to GB200 superchip for rack stats rendering
+  return superchips['gb200-superchip'] ?? null
+}
+export function getTray(id:string){ return trays[id] }
+export function getTraySafe(id:string){ return trays[id] ?? trays['gb200-compute-tray'] ?? null }
+

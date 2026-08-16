@@ -1,19 +1,21 @@
 import type { GPUSpec, ProvenanceEntry, SuperchipSpec, ComputeTraySpec, RackSpec } from './types'
 import { h100Spec } from './h100-sxm5'
 const gpuProv: ProvenanceEntry[] = [
-  { level:'gpu', field:'hbm.totalGB', value:192, unit:'GB', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', asOf:'2024-03-18', notes:'Each Blackwell GPU 192GB HBM3e' },
+  { level:'gpu', field:'hbm.totalGB', value:192, unit:'GB', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', asOf:'2024-03-18', notes:'Each Blackwell GPU 192GB HBM3e single' },
   { level:'gpu', field:'memoryBW', value:8, unit:'TB/s', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', asOf:'2024-03-18' },
   { level:'gpu', field:'transistorsB', value:208, unit:'B', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', asOf:'2024-11-18' },
+  { level:'gpu', field:'gpcCount', value:8, unit:'GPCs', status:'derived', sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', asOf:'2024-11-18' },
 ]
 export const blackwellSpec: GPUSpec = {
   id:'blackwell-gb200', label:'GB200 Blackwell GPU', module:'BLACKWELL GB200 GPU (inside Superchip)',
   boardSize:[9.2,0.28,4.6], packageSize:[3.6,0.42,3.4], packageOffset:[0,0.42,0], dieSize:[1.85,0.12,1.55],
   boardMm:[175,95], packageMm:[75,68], dieMm:[34,26],
   dieTileColumns:16, dieTileRows:12,
+  gpcCount:8, smPerGpc:20, smCountsPerGpc:[20,20,20,20,20,20,20,20],
   packageSites:[{position:[-1.32,-1.15],kind:'memory'},{position:[-0.44,-1.15],kind:'memory'},{position:[0.44,-1.15],kind:'memory'},{position:[1.32,-1.15],kind:'memory'},{position:[-1.32,1.15],kind:'memory'},{position:[-0.44,1.15],kind:'memory'},{position:[0.44,1.15],kind:'memory'},{position:[1.32,1.15],kind:'memory'}],
   mountingHoles:h100Spec.mountingHoles, leftPowerStages:h100Spec.leftPowerStages, rightPowerStages:h100Spec.rightPowerStages, topClampPositions:h100Spec.topClampPositions, sideContacts:h100Spec.sideContacts,
   hbm:{count:8, version:'hbm3e', gbPerStack:24, totalGB:192}, dualDie:true, nvlink:true, interposer:true,
-  transistorsB:208, smCount:160, tdpW:1200, memoryBW_TBs:8, nvlinkBW_TBs:1.8, c2cBW_GBs:900,
+  transistorsB:208, smCount:160, tdpW:1200, memoryBW_TBs:8, nvlinkBW_TBs:1.8,
   provenance:gpuProv,
 }
 export const blackwellTiles=16*12
@@ -25,10 +27,11 @@ export const gb200SuperchipSpec: SuperchipSpec = {
   memoryBW_TBs:16, nvlinkBW_TBs:3.6, c2cBW_GBs:900, tdpW:2700, transistorsB:416,
   provenance:[
     { level:'superchip', field:'gpus', value:'2 Blackwell GPUs + 1 Grace CPU', unit:'count', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', asOf:'2024-11-18' },
-    { level:'superchip', field:'hbm.totalGB', value:384, unit:'GB', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', asOf:'2024-11-18', notes:'Raw 384GB usable 372GB' },
+    { level:'superchip', field:'hbm.totalGB', value:384, unit:'GB', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', asOf:'2024-11-18', notes:'Raw 384GB usable 372GB (ECC/spare)' },
     { level:'superchip', field:'memoryBW', value:16, unit:'TB/s', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', asOf:'2024-11-18' },
     { level:'superchip', field:'nvlinkBW', value:3.6, unit:'TB/s', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', asOf:'2024-11-18' },
     { level:'superchip', field:'c2c', value:900, unit:'GB/s', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', asOf:'2024-11-18' },
+    { level:'superchip', field:'boardSize', value:'illustrative', status:'illustrative', notes:'Render dims ≠ real mm' },
   ],
   contains:{gpus:['blackwell-gb200','blackwell-gb200'], cpus:['grace-cpu']},
 }

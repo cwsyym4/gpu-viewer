@@ -16,6 +16,7 @@ function WebGLFallback(){
         <rect x="80" y="65" width="80" height="50" rx="6" fill={palette.package} />
         <rect x="180" y="70" width="80" height="50" rx="6" fill={palette.hbmStack} />
         <text x="120" y="88" fill={palette.lime} fontSize="8" fontFamily="monospace">GH100 DIE</text>
+        <text x="92" y="105" fill="#8fd" fontSize="7" fontFamily="monospace">WebGL unavailable – static fallback</text>
       </svg>
     </div>
   )
@@ -27,18 +28,39 @@ export function SceneViewport({ children, onCreated, isRack }: Props){
   const resetToken = useViewerStore(s=> s.resetToken)
   const setUserInteracted = useViewerStore(s=> s.setUserInteracted)
   const controlsRef = useRef<any>(null)
+  const cameraRef = useRef<any>(null)
 
   useEffect(()=>{
     try{ const c=document.createElement('canvas'); const ctx=c.getContext('webgl2') || c.getContext('webgl'); if(!ctx) setFailed(true) }catch{ setFailed(true) }
   },[])
+
+  // Complete camera reset: position, rotation, zoom, target
   useEffect(()=>{
     if(controlsRef.current){
-      controlsRef.current.target.set(0,0.3,0); controlsRef.current.update()
+      const ctrl = controlsRef.current
+      try{
+        // Reset camera position to default
+        if(ctrl.object){
+          ctrl.object.position.set(6,6,6)
+          ctrl.object.zoom = 1
+          ctrl.object.rotation.set(0,0,0)
+          ctrl.object.updateProjectionMatrix()
+          if(cameraRef.current){
+            cameraRef.current.position.set(6,6,6)
+            cameraRef.current.updateProjectionMatrix()
+          }
+        }
+        ctrl.target.set(0,0.3,0)
+        ctrl.minDistance = 2
+        ctrl.maxDistance = 18
+        ctrl.update()
+      }catch{}
     }
   },[resetToken])
 
   const handleCreated = useCallback((state:any)=>{
     onCreated?.(state)
+    cameraRef.current = state.camera
     state.gl.toneMapping = THREE.ACESFilmicToneMapping
     state.gl.toneMappingExposure = isRack ? 1.85 : 1.55
     state.gl.setClearColor(palette.ground)
@@ -73,7 +95,7 @@ export function SceneViewport({ children, onCreated, isRack }: Props){
           <group>
             {children}
           </group>
-          <Grid args={[40,40]} cellSize={1} cellThickness={0.5} cellColor={palette.gridMinor} sectionSize={4} sectionThickness={1.2} sectionColor={palette.gridMajor} fadeDistance={22} fadeStrength={1} followCamera={false} position={[0,-0.12,0]} />
+          <Grid args={[40,40]} cellSize={1} cellThickness={0.5} cellColor={palette.gridMinor} sectionSize={4} sectionThickness={1.2} sectionColor={palette.gridMajor} fadeDistance={22} fadeStrength={1} followCamera={false} position={[0,-0.12,0] as any} />
           <OrbitControls ref={controlsRef} enableDamping dampingFactor={0.08} minDistance={2} maxDistance={18} minPolarAngle={0.25} maxPolarAngle={Math.PI*0.48}
             onStart={()=> setUserInteracted(true)}
             onChange={()=> setUserInteracted(true)}
