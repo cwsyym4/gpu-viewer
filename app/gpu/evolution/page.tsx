@@ -22,7 +22,7 @@ export default function EvolutionPage(){
         <GPUSelector />
         <div className="border-b border-[#7fee64]/30 bg-[#0d180a] p-3 flex flex-wrap justify-between items-center gap-2 sticky top-0 z-20">
           <Link href="/gpu/compare" className="text-[12px] font-mono text-[#7fee64]/70 border border-[#7fee64]/15 rounded px-2 py-1 bg-black/20">← Compare</Link>
-          <div className="text-[12px] font-mono text-[#d8f9d9] leading-[1.3]">Evolution 2023→2028 · Horizontal timeline · reported/envelope numbers teaching · separate scales · ridge 295→206 becomes bottleneck beyond 72</div>
+          <div className="text-[12px] font-mono text-[#d8f9d9] leading-[1.3]">Evolution 2023→2028 · Horizontal timeline · Official vs derived numbers · Separate scales · Bottlenecks highlighted</div>
           <Link href="/gpu/h100-sxm5" className="text-[12px] font-mono text-[#7fee64]/70 border border-[#7fee64]/10 rounded px-2 py-1">GPU Viewer →</Link>
         </div>
 
@@ -31,7 +31,7 @@ export default function EvolutionPage(){
         <div className="px-4 py-2 flex flex-wrap gap-2 bg-[#0d180a]/50 border-y border-[#7fee64]/10">
           <button data-testid="metric-evol-bw" onClick={()=> setMetric('bw')} className={`px-3 py-1 text-[12px] font-mono border rounded ${metric==='bw'?'bg-[#7fee64] text-black border-[#7fee64]':'border-[#7fee64]/20 text-white/60'}`}>BW 0-32TB/s HBM4 288GB 22TB/s separate</button>
           <button data-testid="metric-evol-power" onClick={()=> setMetric('power')} className={`px-3 py-1 text-[12px] font-mono border rounded ${metric==='power'?'bg-[#2EE6D6] text-black border-[#2EE6D6]':'border-[#2EE6D6]/20 text-white/60'}`}>Power 0-1800W teal vs NVLink lime</button>
-          <button data-testid="metric-evol-nvlink" onClick={()=> setMetric('nvlink')} className={`px-3 py-1 text-[12px] font-mono border rounded ${metric==='nvlink'?'bg-[#7fee64] text-black border-[#7fee64]':'border-[#7fee64]/20 text-white/60'}`}>NVL 0-7.2TB/s lime – ridge 295→206 TB/S teaching</button>
+          <button data-testid="metric-evol-nvlink" onClick={()=> setMetric('nvlink')} className={`px-3 py-1 text-[12px] font-mono border rounded ${metric==='nvlink'?'bg-[#7fee64] text-black border-[#7fee64]':'border-[#7fee64]/20 text-white/60'}`}>NVL 0-7.2TB/s</button>
         </div>
 
         <div className="px-4 py-2"><MetricChart metric={metric} /></div>
@@ -51,7 +51,7 @@ export default function EvolutionPage(){
               <li>Rubin R100 official July 2026: 336B transistors, 224 SMs, 288GB HBM4, 22TB/s BW, 3.6TB/s NVLink6, 1.8TB/s C2C, 17.5 PFLOPS dense FP8/FP6 training 4 PFLOPS FP16/BF16</li>
               <li>Ultra 576GB vision – 1PB/s class – speculative concept separate from Vera Rubin NVL72 official (primary = H100,B200,GB200,Rubin)</li>
             </ul>
-            <div className="mt-3 p-2 bg-[#000]/40 border border-[#7fee64]/10 rounded text-[11px] text-white/50 leading-[1.3]">Primary sequence {ORDER_PRIMARY.join(' → ')} – Ultra speculative separate section with [speculative] badge. Provenance links pointer-events-auto z-10 (not pointer-events-none). Scrolling fixed: .content-scroll height:100dvh overflow-y:auto -webkit-overflow-scrolling:touch ensures compare/evolution 1262px page scrolls in 800px viewport wheel scrollY non-zero.</div>
+            <div className="mt-3 p-2 bg-[#000]/40 border border-[#7fee64]/10 rounded text-[11px] text-white/50 leading-[1.3]">Primary sequence {ORDER_PRIMARY.join(' → ')} – Ultra concepts in separate speculative section with badge. Provenance links clickable.</div>
           </div>
         </div>
       </div>

@@ -27,7 +27,7 @@ export default function ComparePage(){
         <GPUSelector />
         <div className="p-3 flex flex-wrap justify-between items-center gap-2 border-b border-[#7fee64]/10 bg-[#0d180a] sticky top-0 z-20">
           <Link href="/gpu/h100-sxm5" className="text-[12px] font-mono text-[#7fee64]/70 hover:text-[#7fee64] border border-[#7fee64]/15 rounded px-2 py-1 bg-black/20">← H100 Viewer</Link>
-          <div className="text-[12px] font-mono text-[#d8f9d9] leading-[1.3]">GPU Compare — up to 3 side-by-side · faithful boards (no 64 cap) · separate scales · Intelligence Lift teaching · ridge 295→206 bottleneck</div>
+          <div className="text-[12px] font-mono text-[#d8f9d9] leading-[1.3]">GPU Compare — up to 3 side-by-side · Conceptual count-based layouts · Separate scales · Ratios & bottlenecks highlighted</div>
           <Link href="/gpu/evolution" className="text-[12px] font-mono text-[#7fee64] border border-[#7fee64]/20 px-2 py-1 rounded hover:bg-[#7fee64]/15">Evolution →</Link>
         </div>
 
@@ -59,7 +59,7 @@ export default function ComparePage(){
               <div key={id} className="border border-[#7fee64]/20 bg-[#0d180a] rounded overflow-hidden flex flex-col min-w-0 w-full">
                 <div className="p-2 text-[12px] font-mono text-[#d8f9d9] border-b border-[#7fee64]/10 flex justify-between gap-2 items-center"><span className="truncate">{spec.label} — {spec.module}</span><Link href={`/gpu/${id}`} className="shrink-0 text-[12px] text-[#7fee64]/70 underline hover:text-[#7fee64]">open 3D →</Link></div>
                 <MiniBoard spec={spec} />
-                <div className="p-2 text-[12px] font-mono text-[#7fee64]/70 leading-[1.35]">Board {spec.boardSize[0]}×{spec.boardSize[2]} · Pack {spec.packageSize[0]}×{spec.packageSize[2]} · Tiles faithful {spec.dieTileColumns}×{spec.dieTileRows}={spec.dieTileColumns*spec.dieTileRows} · HBM {spec.hbm.count}×{spec.hbm.version.toUpperCase()} {spec.hbm.gbPerStack}GB={spec.hbm.totalGB}GB · {spec.dualDie?'dual-die interposer · CoWoS-L':''} · {spec.gpcCount?`${spec.gpcCount} GPCs ${spec.smCount?`→${spec.smCount} SMs`:''}`:''} · provenance {spec.provenance?.[0]?.status} {spec.provenance?.[0]?.asOf} <a href={spec.provenance?.[0]?.sourceUrl} target="_blank" rel="noreferrer" className="underline ml-1 pointer-events-auto z-10 relative">src↗</a></div>
+                <div className="p-2 text-[12px] font-mono text-[#7fee64]/70 leading-[1.35]">Board {spec.boardSize[0]}×{spec.boardSize[2]} · Pack {spec.packageSize[0]}×{spec.packageSize[2]} · Tiles conceptual {spec.dieTileColumns}×{spec.dieTileRows}={spec.dieTileColumns*spec.dieTileRows} · HBM {spec.hbm.count}×{spec.hbm.version.toUpperCase()} {spec.hbm.gbPerStack}GB={spec.hbm.totalGB}GB · {spec.dualDie?'dual-die interposer · CoWoS-L':''} · {spec.gpcCount?`${spec.gpcCount} GPCs ${spec.smCount?`→${spec.smCount} SMs`:''}`:''} · provenance {spec.provenance?.[0]?.status} {spec.provenance?.[0]?.asOf} <a href={spec.provenance?.[0]?.sourceUrl} target="_blank" rel="noreferrer" className="underline ml-1 pointer-events-auto z-10 relative">src↗</a></div>
               </div>
             )
           })}
@@ -79,7 +79,7 @@ export default function ComparePage(){
             })}
         </div>
 
-        <div className="p-2 text-[11px] font-mono text-white/40 leading-[1.3]">* Envelope numbers for Intelligence Lift teaching, explicitly labeled official/derived/estimated/speculative with sourceUrl – pointer-events-auto z-10 ensures link clickability – no forced 64 tile cap, tile colors by function GPC/SM/cache/mem/disabled.</div>
+        <div className="p-2 text-[11px] font-mono text-white/40 leading-[1.3]">* Numbers explicitly labeled official/derived/estimated/speculative with sourceUrl. Tiles shown as conceptual count-based layout — not physical floorplan. Tile colors by function: compute/memory/structure.</div>
       </div>
     </div>
   )

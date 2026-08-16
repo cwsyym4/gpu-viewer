@@ -20,11 +20,11 @@ export function HBMStack({
   const isActive = active || workloadActive
 
   return (
-    <group position={position as any} data-testid={`hbm-stack-${version ?? 'unknown'}-${totalGB ?? ''}`}>
+    <group position={position as any} userData={{ testId: `hbm-stack-${version ?? 'unknown'}-${totalGB ?? ''}` }}>
       <RoundedBox args={[0.64,0.22,0.5] as any} radius={0.035} smoothness={2}>
         <meshStandardMaterial color={isActive?"#2f5c2b":palette.hbmStack} emissive={isActive?palette.lime:"black"} emissiveIntensity={isActive?0.55:0} transparent={dimOthers} opacity={opacity} />
       </RoundedBox>
-      <group data-testid="hbm-badge" data-version={version} data-total={totalGB} />
+      <group userData={{ testId: "hbm-badge" }} />
       {/* stack layers visual */}
       <group position={[0,0.14,0] as any}>
         <RoundedBox args={[0.58,0.04,0.44] as any} radius={0.02}><meshStandardMaterial color={palette.hbmStack} /></RoundedBox>

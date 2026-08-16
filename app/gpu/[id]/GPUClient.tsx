@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { SceneViewport } from '@/components/scene/SceneViewport'
 import { getSpecSafe, partDefs, workloadOverlays, superchips, racks } from '@/lib/definitions'
 import type { GPUSpec } from '@/lib/definitions/types'
@@ -103,7 +104,7 @@ function BoardGroup({ specId, selected, dimOthers, workloadActiveIds, view }: { 
 
       {/* HBM stacks with traces */}
       {spec.packageSites.filter((s:any)=>s.kind==='memory').map((site:any,i:number)=>(
-        <group key={i} position={[(site.position[0])*2.2,0.28,(site.position[1])*1.6] as any} data-testid={`hbm-site-${i}`}>
+        <group key={i} position={[(site.position[0])*2.2,0.28,(site.position[1])*1.6] as any} data-testid="hbm-site-${i}">
           {/* trace line */}
           <mesh position={[(site.position[0])*0.2, -0.06, (site.position[1])*0.1] as any}>
             <boxGeometry args={[0.28,0.01,0.02]} />
@@ -147,7 +148,7 @@ function ArchitectureExploded({ specId, selected, dimOthers, workloadActiveIds }
         const x = ((gpcIdx%4)-1.5)*1.8
         const z = (Math.floor(gpcIdx/4)-0.5)*1.6
         return (
-          <group key={gpcIdx} position={[x, gpcIdx*0.08, z] as any} data-testid={`gpc-${gpcIdx}`}>
+          <group key={gpcIdx} position={[x, gpcIdx*0.08, z] as any} data-testid="gpc-${gpcIdx}">
             <RoundedBox args={[1.35,0.2,0.9] as any} radius={0.05}>
               <meshStandardMaterial color={palette.gpc} emissive={active?palette.compute:"black"} emissiveIntensity={active?0.6:0} transparent={dimOthers} opacity={dimOthers && !workloadActiveIds.includes('gpc') && selected!=='gpc'?0.25:0.95} />
             </RoundedBox>
@@ -158,20 +159,20 @@ function ArchitectureExploded({ specId, selected, dimOthers, workloadActiveIds }
               const trueIdx = smIdx
               const tcActive = selected==='tensor-core' || selected==='cuda-core' || selected==='tma' || workloadActiveIds.includes('tensor-core')
               return (
-                <group key={smIdx} position={[(smIdx%2-0.5)*0.55,0.18,(Math.floor(smIdx/2)-0.5)*0.34] as any} data-testid={`sm-${gpcIdx}-${trueIdx}`}>
+                <group key={smIdx} position={[(smIdx%2-0.5)*0.55,0.18,(Math.floor(smIdx/2)-0.5)*0.34] as any} data-testid="sm-${gpcIdx}-${trueIdx}">
                   <RoundedBox args={[0.44,0.13,0.32] as any} radius={0.02}>
                     <meshStandardMaterial color="#1a3a20" emissive={tcActive?palette.compute:"black"} emissiveIntensity={tcActive?0.5:0} transparent={dimOthers} opacity={dimOthers && !workloadActiveIds.includes('sm') && selected!=='sm'?0.22:0.9} />
                   </RoundedBox>
-                  <group position={[0,0.11,0] as any} data-testid={`group-tc-cc-tma-${gpcIdx}-${smIdx}`}>
-                    <mesh position={[-0.13,0,0] as any} data-testid={`tensor-core-${gpcIdx}-${smIdx}`}>
+                  <group position={[0,0.11,0] as any} data-testid="group-tc-cc-tma-${gpcIdx}-${smIdx}">
+                    <mesh position={[-0.13,0,0] as any} data-testid="tensor-core-${gpcIdx}-${smIdx}">
                       <boxGeometry args={[0.13,0.05,0.11] as any} />
                       <meshStandardMaterial color={palette.compute} emissive={selected==='tensor-core' || workloadActiveIds.includes('tensor-core')?palette.compute:"black"} emissiveIntensity={0.4} />
                     </mesh>
-                    <mesh position={[0,0,0] as any} data-testid={`cuda-core-${gpcIdx}-${smIdx}`}>
+                    <mesh position={[0,0,0] as any} data-testid="cuda-core-${gpcIdx}-${smIdx}">
                       <boxGeometry args={[0.13,0.05,0.11] as any} />
                       <meshStandardMaterial color="#aaddaa" emissive={selected==='cuda-core'?palette.interaction:"black"} emissiveIntensity={0.2} />
                     </mesh>
-                    <mesh position={[0.13,0,0] as any} data-testid={`tma-${gpcIdx}-${smIdx}`}>
+                    <mesh position={[0.13,0,0] as any} data-testid="tma-${gpcIdx}-${smIdx}">
                       <boxGeometry args={[0.11,0.05,0.1] as any} />
                       <meshStandardMaterial color={palette.interconnect} emissive={selected==='tma' || workloadActiveIds.includes('tma')?palette.interconnect:"black"} emissiveIntensity={0.5} transparent opacity={dimOthers && !workloadActiveIds.includes('tma') && selected!=='tma'?0.25:1} />
                     </mesh>
@@ -195,7 +196,7 @@ function SystemView({ specId, rackView, selected, dimOthers, workloadActiveIds }
   const isRackCapable_ = isRackCapable(specId)
   const effectiveRack = rackView && isRackCapable_
   return (
-    <group data-testid="system-view">
+    <group userData={{ testId: "system-view" }}>
       {!effectiveRack ? (
         <>
           <BoardGroup specId={specId} selected={selected} dimOthers={dimOthers} workloadActiveIds={workloadActiveIds} view="system" />
@@ -231,6 +232,8 @@ function ConditionIndicators({selected}:{selected:any}){
 
 export default function GPUClient({ specId }: { specId:string }){
   const view = useViewerStore(s=> s.view)
+  const searchParams = useSearchParams()
+  const queryView = searchParams?.get('view') as any
   const rackView = useViewerStore(s=> s.rackView)
   const selected = useViewerStore(s=> s.selected)
   const setView = useViewerStore(s=> s.setView)
@@ -245,15 +248,20 @@ export default function GPUClient({ specId }: { specId:string }){
     window.addEventListener('keydown', handler)
     return ()=> window.removeEventListener('keydown', handler)
   },[clearSelection])
+  useEffect(()=>{
+    if(queryView && ['exterior','architecture','system'].includes(queryView) && queryView!==view){
+      useViewerStore.getState().setView(queryView)
+    }
+  },[queryView, view])
 
-  // Auto switch view based on selected part to make selection visibly isolate correct geometry
+  // Auto switch view based on selected part
   useEffect(()=>{
     if(!selected) return
     const def = partDefs.find((p:any)=> p.id===selected)
     if(def && def.view && def.view!==view){
       setView(def.view as any)
     }
-  },[selected])
+  },[selected, setView, view])
 
   if(!spec) return <div className="p-6 text-white">Spec not found</div>
   const isArch = view==='architecture'; const isSystem = view==='system'
@@ -286,7 +294,7 @@ export default function GPUClient({ specId }: { specId:string }){
 
             <div className="absolute top-2 left-2 flex flex-col gap-1 max-w-[70%] pointer-events-auto z-10" data-testid="provenance-bar">
               {spec.provenance?.slice(0,4).map((p:any,i:number)=>(
-                <a key={i} href={p.sourceUrl} target="_blank" rel="noreferrer" className="text-[12px] font-mono px-2 py-1 rounded bg-black/70 border pointer-events-auto inline-flex items-center gap-1 hover:underline" style={{borderColor: p.status==='official'?'#7fee64': p.status==='speculative'?'#ff7e64':'#0ec7ff', color: p.status==='official'?'#7fee64': p.status==='speculative'?'#ff8a6b':'#0ec7ff', zIndex:10}} data-testid={`provenance-badge-${p.field}`}>
+                <a key={i} href={p.sourceUrl} target="_blank" rel="noreferrer" className="text-[12px] font-mono px-2 py-1 rounded bg-black/70 border pointer-events-auto inline-flex items-center gap-1 hover:underline" style={{borderColor: p.status==='official'?'#7fee64': p.status==='speculative'?'#ff7e64':'#0ec7ff', color: p.status==='official'?'#7fee64': p.status==='speculative'?'#ff8a6b':'#0ec7ff', zIndex:10}} data-testid="provenance-badge-${p.field}">
                   <span>{p.field} {p.value}{p.unit?` ${p.unit}`:''}</span><span className="text-[10px] opacity-80">{p.status}</span><span className="text-[10px] opacity-60">{p.asOf}</span><span className="text-[10px] underline">src↗</span>
                 </a>
               ))}

@@ -24,7 +24,7 @@ export default function ModuleClient({ specId, moduleId }: { specId:string, modu
     }else{
       setSelected(moduleId as any)
     }
-  },[part, moduleId])
+  },[part, moduleId, setSelected, setView])
 
   return (
     <div className="min-h-screen bg-[#0d180a] content-scroll">

@@ -10,8 +10,8 @@ export function MetricChart({ metric='bw' }:{ metric?:'bw'|'fp8'|'power'|'nvlink
   const maxBW = 32; const maxPower = 1800; const maxNV = 7.2
   const valFor = (r:any)=> metric==='power' ? r.power/maxPower*100 : metric==='nvlink' ? r.nv/maxNV*100 : r.bw/maxBW*100
   return (
-    <div className="space-y-2 p-2 border border-[#7fee64]/10 rounded bg-[#080b09]/70" data-testid="metric-chart" aria-label={`Metric chart ${metric} ridge 295→206 envelope intelligence lift`}>
-      <div className="flex justify-between text-[12px] text-white/70 font-mono"><span>{metric==='power' ? 'Power W 0-1800 (teal separate scale)' : metric==='nvlink' ? 'NVLink TB/s 0-7.2 (lime separate scale ridge 295→206 bottleneck)' : 'Memory BW TB/s 0-32 (HBM4 288GB 22TB/s)'}</span><span>0 → {metric==='power'?maxPower: metric==='nvlink'?maxNV:maxBW}</span></div>
+    <div className="space-y-2 p-2 border border-[#7fee64]/10 rounded bg-[#080b09]/70" data-testid="metric-chart" aria-label={`Metric chart ${metric} conceptual`}>
+      <div className="flex justify-between text-[12px] text-white/70 font-mono"><span>{metric==='power' ? 'Power W 0-1800 (teal separate scale)' : metric==='nvlink' ? 'NVLink TB/s 0-7.2 (lime separate scale)' : 'Memory BW TB/s 0-32 (HBM4 288GB 22TB/s)'}</span><span>0 → {metric==='power'?maxPower: metric==='nvlink'?maxNV:maxBW}</span></div>
       {sourceMeta.map((r,i)=>(
         <div key={i} className="flex items-center gap-3 text-[12px] font-mono">
           <div className="w-[92px] text-white/80 truncate">{r.label}</div>
@@ -19,7 +19,7 @@ export function MetricChart({ metric='bw' }:{ metric?:'bw'|'fp8'|'power'|'nvlink
           <div className="w-[76px] text-white/60 text-[12px]">{metric==='power'? r.power : metric==='nvlink'? r.nv : r.bw}{metric==='power'?'W': metric==='nvlink'?'TB/s':'TB/s'}</div>
         </div>
       ))}
-      <div className="text-[12px] font-mono text-white/40 leading-[1.3]"><a href={sourceMeta[0].source} target="_blank" rel="noreferrer" className="underline pointer-events-auto z-10 relative">source</a> asOf {sourceMeta[0].asOf} · GB200 Superchip usable 372GB vs raw 384GB (ECC/spare) · FP8 R100 17.5PFLOPS dense official July 2026 corrected (not 4) · Envelope numbers explicitly labeled official/derived/estimated/speculative for Intelligence Lift teaching – ridge 295→206 TB/S becomes bottleneck beyond NVL72 72.</div>
+      <div className="text-[12px] font-mono text-white/40 leading-[1.3]"><a href={sourceMeta[0].source} target="_blank" rel="noreferrer" className="underline pointer-events-auto z-10 relative">source</a> asOf {sourceMeta[0].asOf} · GB200 Superchip usable 372GB vs raw 384GB (ECC/spare) · FP8 17.5 PFLOPS dense official July 2026 · Numbers labeled official/derived/estimated/speculative.</div>
     </div>
   )
 }

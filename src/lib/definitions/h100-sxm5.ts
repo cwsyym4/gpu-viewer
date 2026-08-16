@@ -15,7 +15,7 @@ export const h100Spec: GPUSpec = {
   boardSize:[8.6,0.22,4], packageSize:[2.78,0.34,2.72], packageOffset:[0,0.35,0], dieSize:[1.42,0.1,1.18],
   boardMm:[166,86], packageMm:[62.5,55], dieMm:[26,19],
   dieTileColumns:12, dieTileRows:9,
-  gpcCount:8, smPerGpc:18, smCountsPerGpc:[18,18,18,18,16,16,16,12], // sums to 132 official SXM5
+  gpcCount:8, smPerGpc:18, smCountsPerGpc:[18,18,18,18,16,16,16,12], // illustrative distribution summing to 132 enabled SMs – only total 132 sourced official (full GH100=144), per-GPC breakdown is derived/illustrative for visualization
   packageSites:[{position:[-.84,-.72],kind:'memory'},{position:[0,-.72],kind:'memory'},{position:[.84,-.72],kind:'memory'},{position:[-.84,.72],kind:'memory'},{position:[0,.72],kind:'memory'},{position:[.84,.72],kind:'structural'}],
   mountingHoles:[[-2.72,-1.58],[-2.18,-1.58],[2.2,-1.58],[2.74,-1.58],[-2.72,1.58],[-2.18,1.58],[2.2,1.58],[2.74,1.58]],
   leftPowerStages: mkPowerLeft(), rightPowerStages: mkPowerRight(),

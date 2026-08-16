@@ -8,7 +8,7 @@ const ORDER = ['h100-sxm5','b200-sxm','blackwell-gb200','rubin-r100','rubin-ultr
 export function EvolutionTimeline({ onSelect }:{ onSelect?:(id:string)=>void }){
   const [active, setActive] = useState<string>('b200-sxm')
   return (
-    <div className="w-full overflow-x-auto content-scroll" style={{WebkitOverflowScrolling:'touch'}}>
+    <div className="w-full overflow-x-auto" style={{WebkitOverflowScrolling:'touch'}}>  {/* fixed: removed content-scroll height:100dvh that made timeline itself full-viewport vertical */}
       <div className="min-w-[900px] px-6 py-8">
         <div className="relative">
           <div className="absolute top-[34px] left-[20px] right-[20px] h-[2px] bg-[#7fee64]/20" />
@@ -34,7 +34,7 @@ export function EvolutionTimeline({ onSelect }:{ onSelect?:(id:string)=>void }){
                   <div className="mt-1 flex gap-[1px] flex-wrap">
                     {Array.from({length: Math.min(spec.hbm.count,12)}).map((_,i)=><div key={i} className="w-[4px] h-[4px] bg-[#2EE6D6]/60" />)}
                   </div>
-                  <div className="text-[12px] text-[#7fee64]/50 mt-1 font-mono">{spec.dieTileColumns*spec.dieTileRows} tiles {spec.dieTileColumns}×{spec.dieTileRows} (no 64 cap, faithful counts)</div>
+                  <div className="text-[12px] text-[#7fee64]/50 mt-1 font-mono">{spec.dieTileColumns*spec.dieTileRows} tiles {spec.dieTileColumns}×{spec.dieTileRows} – Conceptual count-based layout</div>
                 </button>
               )
             })}

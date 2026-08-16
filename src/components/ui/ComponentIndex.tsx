@@ -2,6 +2,7 @@
 import { partDefs } from '@/lib/definitions'
 import { useViewerStore } from '@/store/useViewerStore'
 import { palette, semanticLegend } from '@/lib/materials/palette'
+import { useEffect, useState } from 'react'
 
 export function ComponentIndex(){
   const selected = useViewerStore(s=> s.selected)
@@ -11,15 +12,38 @@ export function ComponentIndex(){
   const setDrawerOpen = useViewerStore(s=> s.setDrawerOpen)
   const workload = useViewerStore(s=> s.workload)
   const setWorkload = useViewerStore(s=> s.setWorkload)
+  const [specId, setSpecId] = useState<string>('h100-sxm5')
+  useEffect(()=>{
+    try{
+      const parts = window.location.pathname.split('/')
+      const id = parts[parts.length-1]?.split('?')[0]
+      if(id && id.includes('-')) setSpecId(id)
+      else {
+        const q = new URLSearchParams(window.location.search)
+        const pid = q.get('id') ?? q.get('specId')
+        if(pid) setSpecId(pid)
+      }
+    }catch{}
+  },[])
+
+  const filtered = partDefs.filter((p:any)=>{
+    if(!(p as any).onlyFor) return true
+    const only = (p as any).onlyFor as string[]
+    // allow if current specId in onlyFor or current specId contains substring
+    if(only.includes(specId)) return true
+    if(specId.includes('gb200') && only.includes('blackwell-gb200')) return true
+    if(specId.includes('rubin') && only.some((o:string)=>o.includes('rubin'))) return true
+    return false
+  })
 
   return (
     <section aria-label="Component Index" data-testid="component-index" className={`${drawerOpen ? 'w-[230px]' : 'w-[56px]'} shrink-0 border-r border-[#7fee64]/15 bg-[#080b09] transition-all`} style={{ minHeight:'420px' }}>
       <div className="flex items-center justify-between px-2 py-1 border-b border-[#7fee64]/10">
-        <span className={`text-[12px] font-mono text-[#7fee64] ${!drawerOpen ? 'hidden' : ''}`}>GPU MAP · {partDefs.length} PARTS</span>
+        <span className={`text-[12px] font-mono text-[#7fee64] ${!drawerOpen ? 'hidden' : ''}`}>GPU MAP · {filtered.length} PARTS</span>
         <button type="button" data-testid="toggle-drawer" onClick={()=> setDrawerOpen(!drawerOpen)} className="text-[12px] px-1 py-0.5 border border-[#7fee64]/20 rounded text-[#7fee64]/70">{drawerOpen ? '◀' : '▶'}</button>
       </div>
       <div className="py-1">
-        {partDefs.map(p=>{
+        {filtered.map(p=>{
           const active = selected===p.id
           const ck = (p as any).semanticColorKey as keyof typeof palette | undefined
           const semColor = ck ? (palette as any)[ck] ?? (palette as any).semantic?.[ck]?.color ?? '#7fee64' : '#7fee64'
@@ -70,7 +94,7 @@ export function ComponentIndex(){
             <div className="text-[11px] text-white/50 mb-1 font-mono">SEMANTIC LEGEND</div>
             {semanticLegend.map(l=><div key={l.key} className="flex items-center gap-1 text-[12px] text-white/70 font-mono"><span className="inline-block w-2 h-2 rounded-full" style={{background:l.color}} /><span>{l.label}</span></div>)}
           </div>
-          <div className="px-2 py-2 border-t border-[#7fee64]/10 text-[11px] font-mono text-white/40 leading-[1.2]">Copy: Intelligence Lift teaching – click part to isolate module / ESC clears. Ridge 295→206 becomes bottleneck beyond 72.</div>
+          <div className="px-2 py-2 border-t border-[#7fee64]/10 text-[11px] font-mono text-white/40 leading-[1.2]">Click part to isolate module / ESC clears. Conceptual layout helps compare generations.</div>
         </>
       )}
     </section>

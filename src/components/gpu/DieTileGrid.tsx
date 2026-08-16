@@ -36,7 +36,7 @@ export function DieTileGrid({
   }
 
   return (
-    <group data-testid={dualDie ? 'die-dual' : 'die-single'}>
+    <group userData={{ testId: dualDie ? "die-dual" : "die-single" }}>
       {tiles.map(t=>{
         const x = ((t.col/columns)-0.5)*size[0]*0.92
         const z = ((t.row/rows)-0.5)*size[2]*0.92
@@ -50,22 +50,22 @@ export function DieTileGrid({
         const emi = activeHit ? 0.6 : (workloadActiveIds?.includes('gpc')?0.45:0)
 
         return (
-          <group key={t.i} position={[x,0.02,z] as any} data-testid={`tile-${t.col%2===0?'l':'r'}-${t.row}-${t.i}`} data-gpc={t.col<gpcTotal? (t.col%gpcTotal): undefined}>
+          <group key={t.i} position={[x,0.02,z] as any} userData={{ testId: `tile-${t.col%2===0?'l':'r'}-${t.row}-${t.i}` }}>
             <RoundedBox args={[size[0]/columns*0.86, 0.08, size[2]/rows*0.86] as any} radius={0.012}>
               <meshStandardMaterial color={color} emissive={emissive as any} emissiveIntensity={emi} transparent={dimOthers} opacity={shouldDim?0.15:0.95} />
             </RoundedBox>
             {/* indicate disabled SMs for H100 where active 132 vs 144 full – last 12 tiles dimmer */}
             { (t.i >= (smDist.reduce((a,b)=>a+b,0) - 2)) && size[0] && (
-              <group position={[0,0.04,0] as any} data-testid={`disabled-hint-${t.i}`} />
+              <group position={[0,0.04,0] as any} userData={{ testId: `disabled-hint-${t.i}` }} />
             )}
           </group>
         )
       })}
       {dualDie && (
         <>
-          <group data-testid="interposer-plate" position={[0,-0.05,0] as any}><mesh><boxGeometry args={[size[0]*1.12,0.05,size[2]*1.12] as any} /><meshStandardMaterial color={palette.interposerPlate ?? "#111"} /></mesh></group>
-          <group data-testid="nvlink-bridge-pulse" position={[0,0.08,0] as any}><mesh><boxGeometry args={[0.24,0.06,size[2]*0.5] as any} /><meshStandardMaterial color={palette.nvlinkBridge} emissive={palette.nvlinkPulse} emissiveIntensity={0.6} /></mesh></group>
-          <group data-testid="c2c-bump" position={[0,-0.02,0] as any}><mesh><cylinderGeometry args={[0.05,0.05,0.04,9] as any} /><meshStandardMaterial color={palette.goldContact} /></mesh></group>
+          <group userData={{ testId: "interposer-plate" }} position={[0,-0.05,0] as any}><mesh><boxGeometry args={[size[0]*1.12,0.05,size[2]*1.12] as any} /><meshStandardMaterial color={palette.interposerPlate ?? "#111"} /></mesh></group>
+          <group userData={{ testId: "nvlink-bridge-pulse" }} position={[0,0.08,0] as any}><mesh><boxGeometry args={[0.24,0.06,size[2]*0.5] as any} /><meshStandardMaterial color={palette.nvlinkBridge} emissive={palette.nvlinkPulse} emissiveIntensity={0.6} /></mesh></group>
+          <group userData={{ testId: "c2c-bump" }} position={[0,-0.02,0] as any}><mesh><cylinderGeometry args={[0.05,0.05,0.04,9] as any} /><meshStandardMaterial color={palette.goldContact} /></mesh></group>
         </>
       )}
     </group>

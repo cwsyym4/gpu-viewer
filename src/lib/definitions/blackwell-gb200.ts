@@ -43,9 +43,11 @@ export const gb200TraySpec: ComputeTraySpec = {
     { level:'tray', field:'cpusPerTray', value:2, unit:'CPUs', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', asOf:'2024-11-18' },
   ]
 }
-export const gb200RackSpec: RackSpec = {
+export const gb200RackSpec: RackSpec & { switchTrayCount:number, powerShelfCount:number } = {
+  // @ts-ignore extended for topology clarity
+  switchTrayCount:9, powerShelfCount:6,
   id:'gb200-nvl72-rack', label:'GB200 NVL72 Rack', level:'rack',
-  traySpecId:'gb200-compute-tray', trayCount:18, totalGPUs:72, totalCPUs:36, nvlinkDomain_TBs:130, nvlinkVersion:'NVLink 5 / NVLink Switch 72-rail', c2cPerSuperchip_GBs:900,
+  traySpecId:'gb200-compute-tray', trayCount:18, totalGPUs:72, totalCPUs:36, nvlinkDomain_TBs:130, nvlinkVersion:'NVLink 5 / NVLink Switch 9 switch trays (not on every compute tray per https://docs.nvidia.com/dgx/dgxgb200-user-guide/hardware.html) + 18 compute trays (2 Grace +4 Blackwell)', c2cPerSuperchip_GBs:900, // GB200 NVL72: 18 compute trays + 9 NVSwitch trays + power shelves per official DGX GB200 user guide hardware
   provenance:[
     { level:'rack', field:'totalGPUs', value:72, unit:'GPUs', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', asOf:'2024-11-18' },
     { level:'rack', field:'totalCPUs', value:36, unit:'CPUs', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', asOf:'2024-11-18' },

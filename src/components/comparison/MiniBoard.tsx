@@ -4,11 +4,11 @@ import { palette } from '@/lib/materials/palette'
 
 export function MiniBoard({ spec, highlight, overlay }: { spec: GPUSpec, highlight?: string[], overlay?: boolean }){
   const cols = spec.dieTileColumns; const rows = spec.dieTileRows; const tiles = cols*rows
-  const isPrototypical = false // we render faithful, not schematic; explicit label
+  const isPrototypical = false // we render conceptual count-based layout, not physical floorplan
   return (
     <div className="relative w-full bg-[#080b09] border border-[#7fee64]/15 rounded p-2 flex flex-col gap-1" data-testid={`miniboard-${spec.id}`}>
-      <div className="text-[12px] text-white/70 font-mono leading-[1.2]">{spec.label} · {cols}×{rows}={tiles} {spec.hbm.count}×HBM{spec.hbm.version.toUpperCase()} {spec.hbm.gbPerStack}GB={spec.hbm.totalGB}GB – faithful tiles no 64 cap {spec.speculative?'(speculative concept vision)':''}</div>
-      {/* faithful board viz */}
+      <div className="text-[12px] text-white/70 font-mono leading-[1.2]">{spec.label} · {cols}×{rows}={tiles} {spec.hbm.count}×HBM{spec.hbm.version.toUpperCase()} {spec.hbm.gbPerStack}GB={spec.hbm.totalGB}GB – Conceptual count-based layout {spec.speculative?'(speculative concept)':''}</div>
+      {/* conceptual board viz – count-based – not physical GDS */}
       <div className="relative aspect-[16/10] w-full border border-[#7fee64]/10 rounded bg-[#0a1a10]">
         <div className="absolute inset-[3%] grid gap-[1px] rounded-[3px] p-[2%]" style={{ gridTemplateColumns:`repeat(${cols}, minmax(0,1fr))` , background:'#121212' }}>
           {Array.from({length: tiles}).map((_,i)=>{
@@ -26,7 +26,7 @@ export function MiniBoard({ spec, highlight, overlay }: { spec: GPUSpec, highlig
       </div>
       <div className="flex flex-wrap gap-1 text-[12px] font-mono text-white/40 leading-[1.15]">Board {spec.boardSize[0]}×{spec.boardSize[2]}mm render · Pack {spec.packageSize[0]}×{spec.packageSize[2]} · {spec.dualDie?'dual-die CoWoS-L interposer':'single reticle · 80B Hopper wall'} · GPC {spec.gpcCount ?? '?'} SM {spec.smCount ?? tiles}</div>
       {spec.speculative && <div className="text-[12px] font-mono text-amber-200/80 border border-amber-500/20 rounded px-1 py-0.5 bg-amber-900/10">Speculative Concept – NOT in primary 2023-2026 evolution – 2028 class vision 576GB 1PB/s class</div>}
-      <div className="text-[12px] font-mono text-[#7fee64]/30">*Tiles illustrative placement driven by spec counts, not GDS physical; schematic not to scale but count-faithful.</div>
+      <div className="text-[12px] font-mono text-[#7fee64]/30">*Conceptual count-based layout — not a physical die floorplan. Placement illustrative, counts driven by spec.</div>
       {overlay && highlight && highlight.length>0 && (
         <div className="absolute inset-0 flex items-center justify-center bg-[#7fee6412] border border-[#7fee64]/30 text-[12px] text-[#7fee64] font-mono rounded pointer-events-none">active {highlight.join(',')}</div>
       )}
