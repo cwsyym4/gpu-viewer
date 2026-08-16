@@ -1,20 +1,23 @@
 export const palette = {
-  ground: '#0d180a',
+  ground: '#0d180a', // var(--ground)
   lime: '#7fee64',
   lime80: 'rgba(127,238,100,0.8)',
   lime60: 'rgba(127,238,100,0.6)',
   lime20: 'rgba(127,238,100,0.2)',
   lime10: 'rgba(127,238,100,0.1)',
   ink: '#d8f9d9',
+  rule: '#7fee64',
   fog: '#0d180a',
-  gridMinor: '#133315', // exact Kyle match
-  gridMajor: '#1a4a1e',
+  gridMinor: '#173214', // original GridHelper minor — matches 448 chunk args [18,36,"#315e2a","#173214"]
+  gridMajor: '#315e2a', // original major
+  siteGridCss: '#133315', // css background linear-gradient grid 2% — for site page-frame
   board: '#080b09',
   boardInner: '#111512',
   package: '#171918',
   packageInner: '#080a09',
-  mountingHole: '#1a1a1a', // muted, fixes orange #dc6d42 bug
+  mountingHoleRing: '#dc6d42', // original outer ring per 448
   mountingHoleCore: '#020302',
+  mountingHole: '#dc6d42',
   trace: '#5a4a35',
   powerDark: '#080a09',
   powerAlt: '#202421',
@@ -29,8 +32,8 @@ export const palette = {
   interposerPlate: '#0f2211',
   goldContact: '#c7a85b',
   daughterboard: '#243b26',
-  graceCpu: '#1e4448', // muted teal per Rubin spec #2EE6D6 base
-  graceCpuHighlight: '#2EE6D6', // teal - muted for CPUs, vivid for highlight
+  graceCpu: '#1e4448',
+  graceCpuHighlight: '#2EE6D6',
   nvlinkBridge: '#7fee64',
   nvlinkPulse: '#aaff99',
   rackMetal: '#151c19',
@@ -38,10 +41,16 @@ export const palette = {
   tilePalette: ['#9a6d2c','#a58c35','#728b3f','#3e8053','#347271','#554f7f'] as const,
   tilePaletteBW: ['#8b7355','#6a9a6a','#4a8080','#5a6b8a','#7a6a7a','#8a8a6a'] as const,
   gpc: '#254d23',
-  contactShadowOpacity: 0.32,
-  ambientIntensity: 0.65,
-  dirIntensity: 2.2,
+  contactShadowColor: '#020602',
+  contactShadowOpacity: 0.7, // original ContactShadows opacity .7 not .32/.4
+  contactShadowBlur: 2.5,
+  contactShadowScale: 11,
+  ambientIntensity: 0.9, // original ambientLight intensity .9
+  dirIntensity: 2.8,
   dir2Intensity: 1.6,
+  pointIntensity: 4,
+  fogNear: 24,
+  fogFar: 42,
 } as const
 
 export type Palette = typeof palette
@@ -51,6 +60,7 @@ export function validatePalette(): string[] {
   const required: (keyof Palette)[] = ['ground','lime','fog','gridMinor','gridMajor','board']
   for(const k of required){ if(!isHexColor(palette[k] as any)) errs.push(`palette.${k} invalid`) }
   if(palette.lime !== '#7fee64') errs.push('lime must be #7fee64 per Kyle match')
-  if(palette.gridMinor !== '#133315') errs.push('gridMinor must be #133315 exact')
+  if(palette.gridMinor !== '#173214') errs.push('gridMinor must be #173214 exact per original 448 chunk')
+  if(palette.gridMajor !== '#315e2a') errs.push('gridMajor must be #315e2a exact')
   return errs
 }

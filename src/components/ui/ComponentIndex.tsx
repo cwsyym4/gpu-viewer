@@ -1,42 +1,21 @@
 'use client'
 import { partDefs } from '@/lib/definitions'
 import { useViewerStore } from '@/store/useViewerStore'
-import { useMemo } from 'react'
-import { getSpec } from '@/lib/definitions'
 
 export function ComponentIndex(){
-  const { hovered, selected, setHovered, setSelected, currentGPU } = useViewerStore()
+  const { hovered, selected, setHovered, setSelected } = useViewerStore()
   const active = hovered || selected
-  const spec = useMemo(()=> {
-    try{ return getSpec(currentGPU) }catch{ return getSpec('h100-sxm5') }
-  }, [currentGPU])
-  const isGB200 = spec.id === 'blackwell-gb200'
-  const filtered = useMemo(()=>{
-    // keep 07 base for H100/B200, 09 for GB200
-    return partDefs.filter(p=>{
-      if(!p.onlyFor) return true
-      // @ts-ignore
-      return p.onlyFor.includes(spec.id)
-    })
-  }, [spec.id])
-
-  const countLabel = isGB200 ? '09 PARTS' : filtered.length>=8 ? `0${filtered.length} PARTS` : `0${filtered.length} PARTS` // GB200 9, others 7/8
-
   return (
-    <aside className="part-rail flex flex-col overflow-hidden border-r border-dashed border-[#7fee64]/30">
-      <div className="flex justify-between px-4 py-5 text-[13px] tracking-wider text-[#7fee64]/80"><span>COMPONENT INDEX</span><span>{countLabel}</span></div>
-      <nav className="flex flex-col">
-        {filtered.map(p=>(
-          <a key={p.id} data-id={p.id} data-active={active===p.id} className="grid grid-cols-[34px_1fr_auto] gap-2 px-4 py-3 border-t border-[#7fee64]/10 hover:bg-[#7fee64] hover:text-[#0d180a] data-[active=true]:bg-[#7fee64] data-[active=true]:text-[#0d180a] cursor-pointer no-underline text-[#7fee64]/80"
-             onMouseEnter={()=>setHovered(p.id as any)} onMouseLeave={()=>setHovered(null)} onClick={(e)=>{e.preventDefault(); setSelected(p.id as any)} }>
-            <span className="opacity-55 text-xs">{p.index}</span><span className="truncate">{p.title.split('(')[0].trim()}</span>{p.abbreviation && <small className="px-1 text-[11px] bg-[#7fee64]/10 shrink-0">{p.abbreviation}</small>}
+    <aside className="part-rail" aria-label="GPU components">
+      <div className="rail-heading"><span>COMPONENT INDEX</span><span>07 PARTS</span></div>
+      <nav className="part-list">
+        {partDefs.map(p=>(
+          <a key={p.id} href={p.glossaryUrl} target="_blank" rel="noreferrer" data-active={active===p.id} onMouseEnter={()=>setHovered(p.id as any)} onMouseLeave={()=>setHovered(null)} onFocus={()=>setHovered(p.id as any)} onBlur={()=>setHovered(null)} onClick={(e)=>{ e.preventDefault(); setSelected(p.id as any)}}>
+            <span className="part-index">{p.index}</span><span>{p.title}</span>{p.abbreviation && <small>{p.abbreviation}</small>}
           </a>
         ))}
       </nav>
-      <div className="mt-auto flex flex-col gap-2 border-t border-[#7fee64]/20 p-4 text-[11px] text-[#7fee64]/60 tracking-widest">
-        <span>→ DRAG TO ROTATE</span><span>→ SCROLL TO ZOOM</span><span>→ HOVER TO INSPECT</span>
-        {isGB200 && <span className="text-[#5fbabd]/70">→ RACK VIEW: 72× GPU domain</span>}
-      </div>
+      <div className="rail-footer"><span>DRAG TO ROTATE</span><span>SCROLL TO ZOOM</span><span>HOVER TO INSPECT</span></div>
     </aside>
   )
 }
