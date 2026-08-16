@@ -15,49 +15,47 @@ export function NVL72Rack({ specId, workloadActiveIds, selected }: { specId?:str
   const gpusPerTray = rack?.gpusPerTray ?? (rack?.totalGPUs ? Math.ceil(rack.totalGPUs/trayCount) : 4)
 
   return (
-    <group data-testid="rack-nvl72">
+    <group userData={{ testId: 'rack-nvl72' }}>
       {/* spine */}
-      <group position={[1.9,2.4,0] as any}>
-        <mesh data-testid="rack-spine"><boxGeometry args={[0.18,6.2,0.32] as any} /><meshStandardMaterial color={(palette as any).rackSpine ?? "#2a2a2a"} /></mesh>
-        <mesh position={[0.18,0,0] as any}><boxGeometry args={[0.06,5.8,0.04] as any} /><meshStandardMaterial color={palette.nvlinkPulse} emissive={palette.nvlinkPulse} emissiveIntensity={0.6} /></mesh>
+      <group position={[1.9,2.4,0] as any} userData={{ testId: 'rack-spine-group' }}>
+        <group userData={{ testId: 'rack-spine-mesh' }}><mesh userData={{ testId: 'rack-spine' }}><boxGeometry args={[0.18,6.2,0.32] as any} /><meshStandardMaterial color={(palette as any).rackSpine ?? "#2a2a2a"} /></mesh></group>
+        <group position={[0.18,0,0] as any} userData={{ testId: 'spine-nvlink' }}><mesh userData={{ testId: 'spine-nvlink-mesh' }}><boxGeometry args={[0.06,5.8,0.04] as any} /><meshStandardMaterial color={palette.nvlinkPulse} emissive={palette.nvlinkPulse} emissiveIntensity={0.6} /></mesh></group>
       </group>
 
       {Array.from({length: trayCount}).map((_,trayIdx)=>{
         const y = trayIdx*0.34
         const activeTray = !selected || selected==='rack' || (selected as any)==='tray'
         return (
-          <group key={trayIdx} position={[0,y,0] as any} data-testid="tray-${trayIdx}">
-            <RoundedBox args={[4.2,0.18,2.2] as any} radius={0.03}>
-              <meshStandardMaterial color={(palette as any).rackMetal ?? "#1a1f1a"} transparent={dim && !activeTray} opacity={dim && !activeTray?0.3:0.9} />
-            </RoundedBox>
-            {/* Grace CPUs – 2 per tray */}
-            <group position={[-1.1,0.14,0.4] as any} data-testid="grace-cpu-${trayIdx}-0">
-              <mesh><boxGeometry args={[0.72,0.08,0.54] as any} /><meshStandardMaterial color="#112233" emissive={selected==='grace-cpu' || workloadActiveIds?.includes('grace-cpu')?"#0ec7ff":"black"} emissiveIntensity={0.4} /></mesh>
+          <group key={trayIdx} position={[0,y,0] as any} userData={{ testId: `tray-${trayIdx}` }}>
+            <group userData={{ testId: `tray-box-${trayIdx}` }}>
+              <RoundedBox args={[4.2,0.18,2.2] as any} radius={0.03} userData={{ testId: `tray-mesh-${trayIdx}` }}>
+                <meshStandardMaterial color={(palette as any).rackMetal ?? "#1a1f1a"} transparent={dim && !activeTray} opacity={dim && !activeTray?0.3:0.9} />
+              </RoundedBox>
             </group>
-            <group position={[-1.1,0.14,-0.4] as any} data-testid="grace-cpu-${trayIdx}-1">
-              <mesh><boxGeometry args={[0.72,0.08,0.54] as any} /><meshStandardMaterial color="#112233" emissive={selected==='grace-cpu'?"#0ec7ff":"black"} emissiveIntensity={0.4} /></mesh>
+            {/* Grace CPUs – 2 per tray */}
+            <group position={[-1.1,0.14,0.4] as any} userData={{ testId: `grace-cpu-${trayIdx}-0` }}>
+              <group userData={{ testId: `grace-mesh-${trayIdx}-0` }}><mesh userData={{ testId: `grace-${trayIdx}-0` }}><boxGeometry args={[0.72,0.08,0.54] as any} /><meshStandardMaterial color="#112233" emissive={selected==='grace-cpu' || workloadActiveIds?.includes('grace-cpu')?"#0ec7ff":"black"} emissiveIntensity={0.4} /></mesh></group>
+            </group>
+            <group position={[-1.1,0.14,-0.4] as any} userData={{ testId: `grace-cpu-${trayIdx}-1` }}>
+              <group userData={{ testId: `grace-mesh-${trayIdx}-1` }}><mesh userData={{ testId: `grace-${trayIdx}-1` }}><boxGeometry args={[0.72,0.08,0.54] as any} /><meshStandardMaterial color="#112233" emissive={selected==='grace-cpu'?"#0ec7ff":"black"} emissiveIntensity={0.4} /></mesh></group>
             </group>
             {/* 4 Blackwell / Rubin GPUs per tray */}
             {Array.from({length: gpusPerTray}).map((__,gpuIdx)=>{
               const active = selected==='gpu' || selected==='gpc' || selected==='tensor-core' || workloadActiveIds?.includes('gpc') || workloadActiveIds?.includes('sm')
               const xoff = (gpuIdx-1.5)*0.82
               return (
-                <group key={gpuIdx} position={[xoff+0.55,0.14,0] as any} data-testid="rack-gpu-${trayIdx}-${gpuIdx}">
-                  <RoundedBox args={[0.7,0.08,0.5] as any} radius={0.02}>
-                    <meshStandardMaterial color={gpuColor} emissive={active?palette.compute:"black"} emissiveIntensity={active?0.45:0} transparent={dim && !active} opacity={dim && !active?0.25:0.95} />
-                  </RoundedBox>
+                <group key={gpuIdx} position={[xoff+0.55,0.14,0] as any} userData={{ testId: `rack-gpu-${trayIdx}-${gpuIdx}` }}>
+                  <group userData={{ testId: `rack-gpu-box-${trayIdx}-${gpuIdx}` }}>
+                    <RoundedBox args={[0.7,0.08,0.5] as any} radius={0.02} userData={{ testId: `rack-gpu-mesh-${trayIdx}-${gpuIdx}` }}>
+                      <meshStandardMaterial color={gpuColor} emissive={active?palette.compute:"black"} emissiveIntensity={active?0.45:0} transparent={dim && !active} opacity={dim && !active?0.25:0.95} />
+                    </RoundedBox>
+                  </group>
                   {gpuIdx===0 && trayIdx===0 && (
-                    <Html center position={[0,0.14,0] as any} style={{pointerEvents:'none'}}><div className="text-[9px] font-mono bg-black/60 text-white/60 px-1 rounded border border-white/10">{specId?.includes('rubin')?'R100':'B200'}</div></Html>
+                    <group userData={{ testId: `rack-label-${trayIdx}` }} position={[0,0.14,0] as any}><Html center position={[0,0,0] as any} style={{pointerEvents:'none'}}><div className="text-[12px] font-mono bg-black/60 text-white/60 px-1 rounded border border-white/10">{specId?.includes('rubin')?'R100':'B200'} tile — 18 trays conceptual</div></Html></group>
                   )}
                 </group>
               )
             })}
-            {/* NVSwitch on tray */}
-            <group position={[1.45,0.14,0] as any} data-testid="nvswitch-${trayIdx}">
-              <RoundedBox args={[0.42,0.07,0.68] as any} radius={0.02}>
-                <meshStandardMaterial color={palette.nvlinkBridge} emissive={palette.nvlinkPulse} emissiveIntensity={workloadActiveIds?.includes('nvlink')?0.9:0.55} transparent opacity={dim && !workloadActiveIds?.includes('nvlink') && selected!=='nvlink'?0.35:1} />
-              </RoundedBox>
-            </group>
           </group>
         )
       })}
@@ -66,28 +64,31 @@ export function NVL72Rack({ specId, workloadActiveIds, selected }: { specId?:str
       {Array.from({length:9}).map((_,swIdx)=>{
         const y = 6.4 + swIdx*0.32
         return (
-          <group key={`sw-${swIdx}`} position={[1.0,y,0] as any} data-testid="nvswitch-${swIdx}">
-            <RoundedBox args={[1.6,0.16,1.0] as any} radius={0.03}>
-              <meshStandardMaterial color={palette.nvlinkBridge} emissive={palette.nvlinkPulse} emissiveIntensity={workloadActiveIds?.includes('nvlink')?0.95:0.7} />
-            </RoundedBox>
-            <RoundedBox args={[1.2,0.04,0.8] as any} radius={0.015} position={[0,0.11,0] as any}>
-              <meshStandardMaterial color="#0a1a12" />
-            </RoundedBox>
-            {swIdx===0 && <group position={[0,0.25,0] as any}><mesh><boxGeometry args={[0.02,2.6,0.02]} /><meshStandardMaterial color={palette.nvlinkPulse} emissive={palette.nvlinkPulse} emissiveIntensity={0.8} /></mesh></group>}
+          <group key={`sw-${swIdx}`} position={[1.0,y,0] as any} userData={{ testId: `nvswitch-tray-${swIdx}` }}>
+            <group userData={{ testId: `nvswitch-box-${swIdx}` }}>
+              <RoundedBox args={[1.6,0.16,1.0] as any} radius={0.03} userData={{ testId: `nvswitch-mesh-${swIdx}` }}>
+                <meshStandardMaterial color={palette.nvlinkBridge} emissive={palette.nvlinkPulse} emissiveIntensity={workloadActiveIds?.includes('nvlink')?0.95:0.7} />
+              </RoundedBox>
+            </group>
+            <group userData={{ testId: `nvswitch-inner-${swIdx}` }} position={[0,0.11,0] as any}>
+              <RoundedBox args={[1.2,0.04,0.8] as any} radius={0.015} userData={{ testId: `nvswitch-inner-mesh-${swIdx}` }} position={[0,0,0] as any}>
+                <meshStandardMaterial color="#0a1a12" />
+              </RoundedBox>
+            </group>
           </group>
         )
       })}
       {/* Power shelves */}
       {Array.from({length:6}).map((_,ps)=>(
-        <group key={`ps-${ps}`} position={[0,-0.8-ps*0.25,0] as any} data-testid="power-shelf-${ps}">
-          <mesh><boxGeometry args={[4.6,0.12,2.4] as any} /><meshStandardMaterial color="#1c2220" /></mesh>
+        <group key={`ps-${ps}`} position={[0,-0.8-ps*0.25,0] as any} userData={{ testId: `power-shelf-${ps}` }}>
+          <group userData={{ testId: `power-shelf-mesh-${ps}` }}><mesh userData={{ testId: `ps-mesh-${ps}` }}><boxGeometry args={[4.6,0.12,2.4] as any} /><meshStandardMaterial color="#1c2220" /></mesh></group>
         </group>
       ))}
       {/* Mgmt switch */}
-      <group position={[0,9.2,0] as any} data-testid="mgmt-switch">
-        <RoundedBox args={[2.2,0.14,0.9] as any} radius={0.02}><meshStandardMaterial color="#222" /></RoundedBox>
+      <group position={[0,9.2,0] as any} userData={{ testId: 'mgmt-switch' }}>
+        <group userData={{ testId: 'mgmt-box' }}><RoundedBox args={[2.2,0.14,0.9] as any} radius={0.02} userData={{ testId: 'mgmt-mesh' }}><meshStandardMaterial color="#222" /></RoundedBox></group>
       </group>
-      <Html center position={[0,6.8,0] as any}><div className="text-[12px] font-mono text-white/50 bg-black/50 px-2 py-1 rounded">{rack?.label ?? 'GB200 NVL72 18×4 GPUs 36 Grace 9 racks 72 GPUs domain 130TB/s'}</div></Html>
+      <group position={[0,6.8,0] as any} userData={{ testId: 'rack-label-group' }}><Html center position={[0,0,0] as any}><div className="text-[12px] font-mono text-white/50 bg-black/50 px-2 py-1 rounded">{rack?.label ?? 'GB200 NVL72 18×4 GPUs 36 Grace 9 switch trays 72 GPUs domain 130TB/s – conceptual'}</div></Html></group>
     </group>
   )
 }

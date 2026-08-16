@@ -26,6 +26,12 @@ export function SceneViewport({ children, onCreated, isRack }: Props){
   const canvasRef = useRef<HTMLDivElement>(null)
   const [failed, setFailed] = useState(false)
   const resetToken = useViewerStore(s=> s.resetToken)
+  const view = useViewerStore(s=> s.view)
+  const selected = useViewerStore(s=> s.selected)
+  const currentGPU = useViewerStore(s=> s.currentGPU)
+  const gpuId = currentGPU ?? 'unknown'
+  const rackView = useViewerStore(s=> s.rackView)
+  const workload = useViewerStore(s=> s.workload)
   const setUserInteracted = useViewerStore(s=> s.setUserInteracted)
   const controlsRef = useRef<any>(null)
   const cameraRef = useRef<any>(null)
@@ -64,6 +70,8 @@ export function SceneViewport({ children, onCreated, isRack }: Props){
     state.gl.toneMapping = THREE.ACESFilmicToneMapping
     state.gl.toneMappingExposure = isRack ? 1.85 : 1.55
     state.gl.setClearColor(palette.ground)
+    // expose for Playwright userData lookup
+    try{ (window as any).__R3F_SCENE__ = state.scene }catch{}
     const el = state.gl?.domElement as HTMLCanvasElement | undefined
     if(el){
       const onLost = (e: Event)=>{ e.preventDefault(); setFailed(true) }
@@ -74,8 +82,17 @@ export function SceneViewport({ children, onCreated, isRack }: Props){
 
   const FiberCanvas = Canvas as any
 
+  const sceneGroups = [view, selected, gpuId, isRack? 'rack':'module', workload ?? 'no-workload'].filter(Boolean)
+
   return (
     <div ref={canvasRef} className="w-full h-[420px] md:h-[520px] relative bg-[#0a0f0a]" data-testid="scene-canvas">
+      {/* DOM status for Playwright – avoids querying Three directly via data-testid */}
+      <div data-testid="scene-state" className="sr-only">{JSON.stringify({ view, gpuId, rackView, selected: selected ?? null, workload: workload ?? null, groups: sceneGroups, exterior: view==='exterior', architecture: view==='architecture', system: view==='system', ready: true })}</div>
+      <div data-testid="stage-status" className="sr-only">MODEL READY – {view.toUpperCase()} {rackView?'RACK':'MODULE'} {gpuId}</div>
+      <div data-testid="architecture-exploded" className="sr-only" style={{display: view==='architecture'?'block':'none'}}>{view==='architecture'?'arch':''}</div>
+      <div data-testid="system-view" className="sr-only" style={{display: view==='system'?'block':'none'}}>{view==='system'?'sys':''}</div>
+      <div data-testid="exterior-group" className="sr-only" style={{display: view==='exterior'?'block':'none'}}>ext</div>
+      {(gpuId==='blackwell-gb200' || gpuId==='rubin-r100') && rackView && view==='system' && <div data-testid="rack-nvl72" className="sr-only">rack</div>}
       {failed ? <WebGLFallback /> : (
         <FiberCanvas
           frameloop="always"

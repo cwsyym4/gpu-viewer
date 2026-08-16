@@ -31,60 +31,62 @@ function BoardGroup({ specId, selected, dimOthers, workloadActiveIds, view }: { 
   const illuminated = (ids:string[])=> ids.some(id=> workloadActiveIds.includes(id)) || (selected && ids.includes(selected))
 
   return (
-    <group scale={[scale,scale,scale]} data-testid="exterior-group">
+    <group scale={[scale,scale,scale]} userData={{ testId: 'exterior-group' }}>
       {/* Board base */}
-      <RoundedBox args={spec.boardSize as any} radius={0.08} data-testid="board-mesh">
+      <RoundedBox args={spec.boardSize as any} radius={0.08} userData={{ testId: 'board-mesh' }}>
         <meshStandardMaterial color={palette.board} emissive="#2a4a30" emissiveIntensity={illuminated(['board','structure'])?0.78:0.25} />
       </RoundedBox>
-      <RoundedBox args={[spec.boardSize[0]-0.12,0.1,spec.boardSize[2]-0.12] as any} radius={0.13} smoothness={3} position={[0,0.13,0]} data-testid="board-inner">
+      <RoundedBox args={[spec.boardSize[0]-0.12,0.1,spec.boardSize[2]-0.12] as any} radius={0.13} smoothness={3} position={[0,0.13,0]} userData={{ testId: 'board-inner' }}>
         <meshStandardMaterial color={palette.boardInner} metalness={0.18} roughness={0.76} />
       </RoundedBox>
 
       {/* Power delivery / VRM restored */}
-      <group data-testid="power-stages-left">
+      <group userData={{ testId: 'power-stages-left' }}>
         {spec.leftPowerStages.map((pos,i)=>(
-          <group key={`l-${i}`} position={[pos[0],0.18,pos[1]] as any}>
-            <mesh><boxGeometry args={[0.18,0.08,0.14]} /><meshStandardMaterial color={palette.powerDark} /></mesh>
-            <mesh position={[0,0.06,0]}><boxGeometry args={[0.08,0.06,0.08]} /><meshStandardMaterial color={palette.capacitor} /></mesh>
+          <group key={`l-${i}`} position={[pos[0],0.18,pos[1]] as any} userData={{ testId: `power-l-${i}` }}>
+            <mesh userData={{ testId: `vrm-l-${i}` }}><boxGeometry args={[0.18,0.08,0.14]} /><meshStandardMaterial color={palette.powerDark} /></mesh>
+            <mesh position={[0,0.06,0]} userData={{ testId: `cap-l-${i}` }}><boxGeometry args={[0.08,0.06,0.08]} /><meshStandardMaterial color={palette.capacitor} /></mesh>
           </group>
         ))}
       </group>
-      <group data-testid="power-stages-right">
+      <group userData={{ testId: 'power-stages-right' }}>
         {spec.rightPowerStages.map((pos,i)=>(
-          <group key={`r-${i}`} position={[pos[0],0.18,pos[1]] as any}>
-            <mesh><boxGeometry args={[0.18,0.08,0.14]} /><meshStandardMaterial color={palette.powerAlt} /></mesh>
+          <group key={`r-${i}`} position={[pos[0],0.18,pos[1]] as any} userData={{ testId: `power-r-${i}` }}>
+            <mesh userData={{ testId: `vrm-r-${i}` }}><boxGeometry args={[0.18,0.08,0.14]} /><meshStandardMaterial color={palette.powerAlt} /></mesh>
           </group>
         ))}
       </group>
 
       {/* Mounting holes restored */}
-      <group data-testid="mounting-holes-group">
+      <group userData={{ testId: 'mounting-holes-group' }}>
         <MountingHoles positions={spec.mountingHoles as any} />
       </group>
 
       {/* Side gold contacts */}
-      <group data-testid="side-contacts">
+      <group userData={{ testId: 'side-contacts' }}>
         {spec.sideContacts.map((z,i)=>(
-          <mesh key={i} position={[spec.boardSize[0]/2-0.08,0.08,z*0.16 as any] as any}>
-            <boxGeometry args={[0.04,0.02,0.12]} />
-            <meshStandardMaterial color={palette.goldContact} metalness={0.8} roughness={0.3} emissive={illuminated(['interconnect','structure'])?palette.interconnect:"black"} emissiveIntensity={illuminated(['interconnect'])?0.3:0} />
-          </mesh>
+          <group key={i} position={[0,0,0] as any} userData={{ testId: `contact-${i}` }}>
+            <mesh position={[spec.boardSize[0]/2-0.08,0.08,z*0.16 as any] as any} userData={{ testId: `contact-mesh-${i}` }}>
+              <boxGeometry args={[0.04,0.02,0.12]} />
+              <meshStandardMaterial color={palette.goldContact} metalness={0.8} roughness={0.3} emissive={illuminated(['interconnect','structure'])?palette.interconnect:"black"} emissiveIntensity={illuminated(['interconnect'])?0.3:0} />
+            </mesh>
+          </group>
         ))}
       </group>
 
       {/* Top clamps */}
-      <group data-testid="top-clamps">
+      <group userData={{ testId: 'top-clamps' }}>
         {spec.topClampPositions.map((x,i)=>(
-          <group key={i} position={[x,0.24,0] as any}>
-            <mesh><boxGeometry args={[0.22,0.06,0.52]} /><meshStandardMaterial color={palette.clamp} /></mesh>
-            <mesh position={[0,0.05,0]}><boxGeometry args={[0.2,0.03,0.48]} /><meshStandardMaterial color={palette.clampTop} /></mesh>
+          <group key={i} position={[x,0.24,0] as any} userData={{ testId: `clamp-${i}` }}>
+            <mesh userData={{ testId: `clamp-mesh-${i}` }}><boxGeometry args={[0.22,0.06,0.52]} /><meshStandardMaterial color={palette.clamp} /></mesh>
+            <mesh position={[0,0.05,0]} userData={{ testId: `clamp-top-${i}` }}><boxGeometry args={[0.2,0.03,0.48]} /><meshStandardMaterial color={palette.clampTop} /></mesh>
           </group>
         ))}
       </group>
 
       {/* Package */}
-      <group position={spec.packageOffset as any} data-testid="package-group">
-        <RoundedBox args={spec.packageSize as any} radius={0.05} data-testid="package-mesh">
+      <group position={spec.packageOffset as any} userData={{ testId: 'package-group' }}>
+        <RoundedBox args={spec.packageSize as any} radius={0.05} userData={{ testId: 'package-mesh' }}>
           <meshStandardMaterial color={palette.package} emissive="#1d2a1e" emissiveIntensity={illuminated(['package','structure'])?0.55:0.15} />
         </RoundedBox>
         {/* Die tiles driven by spec */}
@@ -104,12 +106,14 @@ function BoardGroup({ specId, selected, dimOthers, workloadActiveIds, view }: { 
 
       {/* HBM stacks with traces */}
       {spec.packageSites.filter((s:any)=>s.kind==='memory').map((site:any,i:number)=>(
-        <group key={i} position={[(site.position[0])*2.2,0.28,(site.position[1])*1.6] as any} data-testid="hbm-site-${i}">
+        <group key={i} position={[(site.position[0])*2.2,0.28,(site.position[1])*1.6] as any} userData={{ testId: `hbm-site-${i}` }}>
           {/* trace line */}
-          <mesh position={[(site.position[0])*0.2, -0.06, (site.position[1])*0.1] as any}>
-            <boxGeometry args={[0.28,0.01,0.02]} />
-            <meshStandardMaterial color={palette.trace} />
-          </mesh>
+          <group position={[(site.position[0])*0.2, -0.06, (site.position[1])*0.1] as any} userData={{ testId: `hbm-trace-${i}` }}>
+            <mesh userData={{ testId: `trace-mesh-${i}` }}>
+              <boxGeometry args={[0.28,0.01,0.02]} />
+              <meshStandardMaterial color={palette.trace} />
+            </mesh>
+          </group>
           <HBMStack
             position={[0,0,0] as any}
             version={(spec as any).hbm.version}
@@ -136,10 +140,12 @@ function ArchitectureExploded({ specId, selected, dimOthers, workloadActiveIds }
   const label = `${gpcCount} GPCs × ${spec.smPerGpc ?? Math.round(totalSm/gpcCount)} SM avg = ${spec.smCount ?? totalSm} SMs (${spec.id==='h100-sxm5'?'132 active / 144 full GH100':''})`
 
   return (
-    <group data-testid="architecture-exploded" scale={[scale,scale,scale]}>
-      <Html center position={[0,2.2,0]} style={{pointerEvents:'none'}}>
-        <div className="text-[12px] font-mono text-white/70 bg-black/70 px-2 py-1 rounded border border-[#7fee64]/20">{label} – GPC→SM→Tensor/CUDA/TMA driven by spec</div>
-      </Html>
+    <group userData={{ testId: 'architecture-exploded' }} scale={[scale,scale,scale]}>
+      <group userData={{ testId: 'arch-label' }} position={[0,2.2,0] as any}>
+        <Html center position={[0,0,0]} style={{pointerEvents:'none'}}>
+          <div className="text-[12px] font-mono text-white/70 bg-black/70 px-2 py-1 rounded border border-[#7fee64]/20">{label} – Conceptual count-based layout — not a physical die floorplan</div>
+        </Html>
+      </group>
       {Array.from({length:gpcCount}).map((_,gpcIdx)=>{
         const smInGpc = smCounts[gpcIdx] ?? spec.smPerGpc ?? 18
         // we will display up to 6 visual SM boxes per GPC to keep scene legible, but label true count
@@ -148,31 +154,33 @@ function ArchitectureExploded({ specId, selected, dimOthers, workloadActiveIds }
         const x = ((gpcIdx%4)-1.5)*1.8
         const z = (Math.floor(gpcIdx/4)-0.5)*1.6
         return (
-          <group key={gpcIdx} position={[x, gpcIdx*0.08, z] as any} data-testid="gpc-${gpcIdx}">
-            <RoundedBox args={[1.35,0.2,0.9] as any} radius={0.05}>
+          <group key={gpcIdx} position={[x, gpcIdx*0.08, z] as any} userData={{ testId: `gpc-${gpcIdx}` }}>
+            <RoundedBox args={[1.35,0.2,0.9] as any} radius={0.05} userData={{ testId: `gpc-box-${gpcIdx}` }}>
               <meshStandardMaterial color={palette.gpc} emissive={active?palette.compute:"black"} emissiveIntensity={active?0.6:0} transparent={dimOthers} opacity={dimOthers && !workloadActiveIds.includes('gpc') && selected!=='gpc'?0.25:0.95} />
             </RoundedBox>
-            <Html center position={[0,0.22,0]} style={{pointerEvents:'none'}}>
-              <div className="text-[10px] font-mono text-white/60 bg-black/40 px-1 rounded">GPC{gpcIdx} {smInGpc}SM</div>
-            </Html>
+            <group userData={{ testId: `gpc-label-${gpcIdx}` }} position={[0,0.22,0] as any}>
+              <Html center position={[0,0,0]} style={{pointerEvents:'none'}}>
+                <div className="text-[10px] font-mono text-white/60 bg-black/40 px-1 rounded">GPC{gpcIdx} {smInGpc}SM {gpcIdx===0 && spec.id==='h100-sxm5' ? '(illustrative dist 132 active)' : ''}</div>
+              </Html>
+            </group>
             {Array.from({length:visualSm}).map((_,smIdx)=>{
               const trueIdx = smIdx
               const tcActive = selected==='tensor-core' || selected==='cuda-core' || selected==='tma' || workloadActiveIds.includes('tensor-core')
               return (
-                <group key={smIdx} position={[(smIdx%2-0.5)*0.55,0.18,(Math.floor(smIdx/2)-0.5)*0.34] as any} data-testid="sm-${gpcIdx}-${trueIdx}">
-                  <RoundedBox args={[0.44,0.13,0.32] as any} radius={0.02}>
+                <group key={smIdx} position={[(smIdx%2-0.5)*0.55,0.18,(Math.floor(smIdx/2)-0.5)*0.34] as any} userData={{ testId: `sm-${gpcIdx}-${trueIdx}` }}>
+                  <RoundedBox args={[0.44,0.13,0.32] as any} radius={0.02} userData={{ testId: `sm-box-${gpcIdx}-${smIdx}` }}>
                     <meshStandardMaterial color="#1a3a20" emissive={tcActive?palette.compute:"black"} emissiveIntensity={tcActive?0.5:0} transparent={dimOthers} opacity={dimOthers && !workloadActiveIds.includes('sm') && selected!=='sm'?0.22:0.9} />
                   </RoundedBox>
-                  <group position={[0,0.11,0] as any} data-testid="group-tc-cc-tma-${gpcIdx}-${smIdx}">
-                    <mesh position={[-0.13,0,0] as any} data-testid="tensor-core-${gpcIdx}-${smIdx}">
+                  <group position={[0,0.11,0] as any} userData={{ testId: `group-tc-cc-tma-${gpcIdx}-${smIdx}` }}>
+                    <mesh position={[-0.13,0,0] as any} userData={{ testId: `tensor-core-${gpcIdx}-${smIdx}` }}>
                       <boxGeometry args={[0.13,0.05,0.11] as any} />
                       <meshStandardMaterial color={palette.compute} emissive={selected==='tensor-core' || workloadActiveIds.includes('tensor-core')?palette.compute:"black"} emissiveIntensity={0.4} />
                     </mesh>
-                    <mesh position={[0,0,0] as any} data-testid="cuda-core-${gpcIdx}-${smIdx}">
+                    <mesh position={[0,0,0] as any} userData={{ testId: `cuda-core-${gpcIdx}-${smIdx}` }}>
                       <boxGeometry args={[0.13,0.05,0.11] as any} />
                       <meshStandardMaterial color="#aaddaa" emissive={selected==='cuda-core'?palette.interaction:"black"} emissiveIntensity={0.2} />
                     </mesh>
-                    <mesh position={[0.13,0,0] as any} data-testid="tma-${gpcIdx}-${smIdx}">
+                    <mesh position={[0.13,0,0] as any} userData={{ testId: `tma-${gpcIdx}-${smIdx}` }}>
                       <boxGeometry args={[0.11,0.05,0.1] as any} />
                       <meshStandardMaterial color={palette.interconnect} emissive={selected==='tma' || workloadActiveIds.includes('tma')?palette.interconnect:"black"} emissiveIntensity={0.5} transparent opacity={dimOthers && !workloadActiveIds.includes('tma') && selected!=='tma'?0.25:1} />
                     </mesh>
@@ -181,7 +189,9 @@ function ArchitectureExploded({ specId, selected, dimOthers, workloadActiveIds }
               )
             })}
             {smInGpc>visualSm && (
-              <Html position={[0.6,0.18,0] as any} center><div className="text-[10px] text-white/40">+{smInGpc-visualSm} more SMs</div></Html>
+              <group position={[0.6,0,0] as any} userData={{ testId: `more-sm-${gpcIdx}` }}>
+                <Html position={[0,0.18,0] as any} center><div className="text-[10px] text-white/40">+{smInGpc-visualSm} more SMs</div></Html>
+              </group>
             )}
           </group>
         )
@@ -200,22 +210,26 @@ function SystemView({ specId, rackView, selected, dimOthers, workloadActiveIds }
       {!effectiveRack ? (
         <>
           <BoardGroup specId={specId} selected={selected} dimOthers={dimOthers} workloadActiveIds={workloadActiveIds} view="system" />
-          <group position={[0,1.2,0] as any} data-testid="nvlink-group">
-            <RoundedBox args={[1.2,0.12,0.6] as any} radius={0.03}><meshStandardMaterial color={palette.nvlinkBridge} emissive={palette.nvlinkPulse} emissiveIntensity={workloadActiveIds.includes('nvlink')?0.9:0.7} transparent opacity={dimOthers && !workloadActiveIds.includes('nvlink') && selected!=='nvlink'?0.18:1} /></RoundedBox>
-            <Html center position={[0,0.22,0] as any}><div className="text-[12px] font-mono text-[#7fee64] bg-black/50 px-1 rounded">{spec?.nvlinkBW_TBs ? `${spec.nvlinkBW_TBs}TB/s NVLink` : (isH100?'900GB/s':'1.8TB/s per GPU')}</div></Html>
+          <group position={[0,1.2,0] as any} userData={{ testId: 'nvlink-group' }}>
+            <group userData={{ testId: 'nvlink-bridge' }}>
+              <RoundedBox args={[1.2,0.12,0.6] as any} radius={0.03} userData={{ testId: 'nvlink-mesh' }}><meshStandardMaterial color={palette.nvlinkBridge} emissive={palette.nvlinkPulse} emissiveIntensity={workloadActiveIds.includes('nvlink')?0.9:0.7} transparent opacity={dimOthers && !workloadActiveIds.includes('nvlink') && selected!=='nvlink'?0.18:1} /></RoundedBox>
+            </group>
+            <group userData={{ testId: 'nvlink-label' }} position={[0,0.22,0] as any}><Html center position={[0,0,0] as any}><div className="text-[12px] font-mono text-[#7fee64] bg-black/50 px-1 rounded">{spec?.nvlinkBW_TBs ? `${spec.nvlinkBW_TBs}TB/s NVLink` : (isH100?'900GB/s':'1.8TB/s per GPU')}</div></Html></group>
           </group>
           {(specId==='blackwell-gb200' || specId==='h100-sxm5' ? true : false) && (
-            <group position={[0,2,0] as any} data-testid="superchip-group">
-              <mesh><boxGeometry args={[5,0.3,3] as any} /><meshStandardMaterial color="#0a2010" wireframe /></mesh>
-              <Html center position={[0,0.25,0] as any} style={{pointerEvents:'auto'}}>
-                <div className="text-[12px] font-mono text-white/80 bg-black/60 px-2 py-1 rounded pointer-events-auto">
-                  {specId==='blackwell-gb200' ? 'Superchip: 1 Grace 72c +2 Blackwell 384 raw 372 usable 16TB/s 3.6TB/s NVL 900GB/s C2C' : 'H100: NVLink switch scale – 4 GPU optional'}
-                </div>
-              </Html>
+            <group position={[0,2,0] as any} userData={{ testId: 'superchip-group' }}>
+              <group userData={{ testId: 'superchip-wireframe' }}><mesh userData={{ testId: 'superchip-box' }}><boxGeometry args={[5,0.3,3] as any} /><meshStandardMaterial color="#0a2010" wireframe /></mesh></group>
+              <group position={[0,0.25,0] as any} userData={{ testId: 'superchip-label' }}>
+                <Html center position={[0,0,0] as any} style={{pointerEvents:'auto'}}>
+                  <div className="text-[12px] font-mono text-white/80 bg-black/60 px-2 py-1 rounded pointer-events-auto">
+                    {specId==='blackwell-gb200' ? 'Superchip: 1 Grace 72c +2 Blackwell (372GB usable) 16TB/s mem 3.6TB/s NVLink 900GB/s C2C — conceptual' : 'H100: NVLink switch scale – 4 GPUs example'}
+                  </div>
+                </Html>
+              </group>
             </group>
           )}
           {!isRackCapable_ && rackView && (
-            <Html center position={[0,2.6,0] as any}><div className="text-[12px] font-mono text-amber-200 bg-black/70 px-2 py-1 border border-amber-500/30 rounded">Rack view only for GB200 NVL72 and Vera Rubin NVL72 official – current {specId} has no official rack</div></Html>
+            <group position={[0,2.6,0] as any} userData={{ testId: 'rack-na-group' }}><Html center position={[0,0,0] as any}><div className="text-[12px] font-mono text-amber-200 bg-black/70 px-2 py-1 border border-amber-500/30 rounded">Rack view only for GB200 NVL72 and Vera Rubin NVL72 official – current {specId} has no official rack</div></Html></group>
           )}
         </>
       ) : (<NVL72Rack specId={specId} workloadActiveIds={workloadActiveIds} selected={selected} />)}
@@ -262,6 +276,10 @@ export default function GPUClient({ specId }: { specId:string }){
       setView(def.view as any)
     }
   },[selected, setView, view])
+
+  useEffect(()=>{
+    useViewerStore.getState().setCurrentGPU(specId)
+  },[specId])
 
   if(!spec) return <div className="p-6 text-white">Spec not found</div>
   const isArch = view==='architecture'; const isSystem = view==='system'
