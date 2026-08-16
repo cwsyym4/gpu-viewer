@@ -1,5 +1,5 @@
-import Link from 'next/link'
 'use client'
+import Link from 'next/link'
 import { getSpecSafe, partDefs } from '@/lib/definitions'
 import GPUClient from '../GPUClient'
 import { notFound } from 'next/navigation'
