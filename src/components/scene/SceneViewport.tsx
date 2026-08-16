@@ -45,13 +45,12 @@ export function SceneViewport({ children, onCreated, isRack }: Props){
     <div ref={canvasRef} className="w-full h-[420px] md:h-[520px] relative bg-[#0a0f0a]" data-testid="scene-canvas">
       {failed ? <WebGLFallback /> : (
         <Canvas
-          frameloop="always"
+          frameloop={"always" as any}
           gl={{ antialias:true, alpha:false, stencil:false, depth:true, powerPreference:'high-performance' }}
           dpr={[1,1.5]}
           camera={{ position:[6,6,6], fov:28, near:0.1, far:100 }}
           onCreated={handleCreated}
           onPointerMissed={()=>{}}
-          onContextLost={(e:any)=>{ e.preventDefault(); setFailed(true) }}
           style={{ width:'100%', height:'100%' }}
         >
           <color attach="background" args={[palette.ground]} />
