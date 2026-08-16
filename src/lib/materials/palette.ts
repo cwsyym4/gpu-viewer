@@ -29,8 +29,8 @@ export const palette = {
   interposerPlate: '#0f2211',
   goldContact: '#c7a85b',
   daughterboard: '#243b26',
-  graceCpu: '#294d52',
-  graceCpuHighlight: '#2a6b6f',
+  graceCpu: '#1e4448', // muted teal per Rubin spec #2EE6D6 base
+  graceCpuHighlight: '#2EE6D6', // teal - muted for CPUs, vivid for highlight
   nvlinkBridge: '#7fee64',
   nvlinkPulse: '#aaff99',
   rackMetal: '#151c19',

@@ -63,9 +63,10 @@ export default function GPUClient({ specId }:{ specId:string }){
           <div className="flex justify-end gap-2 px-3 items-center">
             <ViewToggle />
             {isGB200 && (
-              <button onClick={()=> setRackView(!rackView)} className={`px-2 py-1 text-[12px] font-mono border ${rackView ? 'bg-[#7fee64] text-black border-[#7fee64]' : 'bg-[#7fee64]/10 text-[#7fee64] border-[#7fee64]/30'}`}>
-                {rackView ? 'Module View' : 'Rack View'}
-              </button>
+              <div className="flex items-center rounded-full border border-[#7fee64]/30 overflow-hidden">
+                <button onClick={()=> setRackView(false)} className={`px-2.5 py-1 text-[11px] font-mono tracking-widest ${!rackView ? 'bg-[#7fee64] text-black' : 'bg-[#7fee64]/10 text-[#7fee64]/70 hover:text-[#7fee64]'}`}>Module View</button>
+                <button onClick={()=> setRackView(true)} className={`px-2.5 py-1 text-[11px] font-mono tracking-widest border-l border-[#7fee64]/30 ${rackView ? 'bg-[#7fee64] text-black' : 'bg-[#7fee64]/10 text-[#7fee64]/70 hover:text-[#7fee64]'}`}>Rack View</button>
+              </div>
             )}
             <button onClick={()=>reset()} className="px-2 py-1 bg-[#7fee64]/10 text-[12px] hidden sm:block">Reset view</button>
             <button onClick={()=>setHelp(!helpOpen)} className="grid place-items-center w-7 h-7 rounded-full border border-[#7fee64] text-[13px]">?</button>

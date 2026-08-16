@@ -115,9 +115,9 @@ export function NVL72Rack({ simplified=true }:{ simplified?: boolean }){
 
 export function RackStats(){
   return (
-    <div className="absolute bottom-[46px] left-6 text-[10px] font-mono text-[#7fee64]/60 leading-[1.3] pointer-events-none">
-      <div>NVL72: 18× trays · 72× Blackwell GPU · 36× Grace CPU</div>
-      <div>NVLink domain 130TB/s · C2C 900GB/s per Superchip · 208B transistors</div>
+    <div className="absolute bottom-[46px] left-6 text-[10px] font-mono text-[#7fee64]/70 leading-[1.35] pointer-events-none max-w-[92%]">
+      <div className="text-[#7fee64]">GB200 NVL72 — 72 Blackwell GPUs fully NVLink domain 130TB/s, 36 Grace CPUs, 18 compute trays</div>
+      <div className="mt-1 text-[#7fee64]/60">NVL72: 18× trays · 72× Blackwell GPU · 36× Grace CPU · NVLink domain 130TB/s · C2C 900GB/s per Superchip · 208B transistors</div>
     </div>
   )
 }

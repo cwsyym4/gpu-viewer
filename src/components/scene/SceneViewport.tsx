@@ -15,7 +15,7 @@ export function SceneViewport({ children, onCreated, isRack }: { children: React
       style={{width:'100%',height:'100%'}}
     >
       <color attach="background" args={[isRack ? '#090f0a' : palette.fog]} />
-      <fog attach="fog" args={[isRack ? '#090f0a' : palette.fog, isRack? 18:24, isRack? 38:42]} />
+      <fog attach="fog" args={[isRack ? '#090f0a' : palette.fog, isRack? 20:24, isRack? 80:42]} />
       <ambientLight intensity={palette.ambientIntensity} />
       <directionalLight intensity={palette.dirIntensity} position={[6,10,8]} castShadow shadow-mapSize={[2048,2048]} />
       <directionalLight intensity={palette.dir2Intensity} position={[-6,5,-4]} />
@@ -31,10 +31,10 @@ export function SceneViewport({ children, onCreated, isRack }: { children: React
         enablePan={!isRack ? false : true}
         enableDamping
         dampingFactor={0.065}
-        minDistance={isRack?10:6.8}
-        maxDistance={isRack?80:24}
+        minDistance={isRack?12:6.8}
+        maxDistance={isRack?90:24}
         minPolarAngle={isRack?0.15:0.35}
-        maxPolarAngle={isRack?1.62:1.48}
+        maxPolarAngle={isRack?1.6:1.48}
         autoRotate={!isRack}
         autoRotateSpeed={0.55}
       />
