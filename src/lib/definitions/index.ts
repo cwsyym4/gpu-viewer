@@ -1,12 +1,16 @@
 import { h100Spec } from './h100-sxm5'
 import { b200Spec } from './b200-sxm'
 import { blackwellSpec } from './blackwell-gb200'
+import { rubinSpec } from './rubin-r100'
+import { rubinUltraSpec } from './rubin-ultra-nvl576'
 import type { GPUSpec } from './types'
 
 export const specs: Record<string,GPUSpec> = {
   'h100-sxm5': h100Spec,
   'b200-sxm': b200Spec,
   'blackwell-gb200': blackwellSpec,
+  'rubin-r100': rubinSpec,
+  'rubin-ultra-nvl576': rubinUltraSpec,
 }
 
 export function getSpec(id:string): GPUSpec {

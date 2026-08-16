@@ -21,7 +21,7 @@ export interface GPUSpec {
   rightPowerStages: Vec2[]
   topClampPositions: number[]
   sideContacts: number[]
-  hbm: { count: number; version: 'hbm3' | 'hbm3e'; gbPerStack: number; totalGB: number }
+  hbm: { count: number; version: 'hbm3' | 'hbm3e' | 'hbm4' | 'hbm4e'; gbPerStack: number; totalGB: number }
   dualDie?: boolean
   nvlink?: boolean
   interposer?: boolean

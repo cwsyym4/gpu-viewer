@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest'
 import { h100Spec } from '@/lib/definitions/h100-sxm5'
 import { b200Spec } from '@/lib/definitions/b200-sxm'
 import { blackwellSpec } from '@/lib/definitions/blackwell-gb200'
+import { rubinSpec } from '@/lib/definitions/rubin-r100'
+import { rubinUltraSpec } from '@/lib/definitions/rubin-ultra-nvl576'
 import { validateSpec } from '@/lib/definitions/types'
 import { palette, validatePalette } from '@/lib/materials/palette'
 
@@ -85,6 +87,34 @@ describe('GPUSpec validation', ()=>{
     expect(blackwellSpec.module).toBe('GB200 NVL72 MODULE')
     expect(blackwellSpec.label.includes('GB200')).toBe(true)
   })
+  it('rubin r100 forward 288GB 18x14 tiles dual-die', ()=>{
+    const errs = validateSpec(rubinSpec)
+    expect(errs).toEqual([])
+    expect(rubinSpec.hbm.count).toBe(8)
+    expect(rubinSpec.hbm.totalGB).toBe(288)
+    expect(rubinSpec.hbm.gbPerStack).toBe(36)
+    expect(rubinSpec.dieTileColumns * rubinSpec.dieTileRows).toBe(252)
+    expect(rubinSpec.dieTileColumns).toBe(18)
+    expect(rubinSpec.dieTileRows).toBe(14)
+    expect(rubinSpec.dualDie).toBe(true)
+    expect(rubinSpec.interposer).toBe(true)
+    expect(rubinSpec.nvlink).toBe(true)
+    expect(rubinSpec.boardSize[0]).toBe(9.6)
+  })
+  it('rubin larger than blackwell', ()=>{
+    expect(rubinSpec.packageSize[0]).toBeGreaterThan(blackwellSpec.packageSize[0])
+    expect(rubinSpec.boardSize[0]).toBeGreaterThan(blackwellSpec.boardSize[0])
+  })
+  it('rubin ultra nvl576 stub 576GB 12 HBM4e 20x16 tiles', ()=>{
+    const errs = validateSpec(rubinUltraSpec)
+    expect(errs).toEqual([])
+    expect(rubinUltraSpec.hbm.count).toBe(12)
+    expect(rubinUltraSpec.hbm.totalGB).toBe(576)
+    expect(rubinUltraSpec.hbm.gbPerStack).toBe(48)
+    expect(rubinUltraSpec.dieTileColumns).toBe(20)
+    expect(rubinUltraSpec.dieTileRows).toBe(16)
+    expect(rubinUltraSpec.dieTileColumns*rubinUltraSpec.dieTileRows).toBe(320)
+  })
 })
 
 describe('palette exact colors prevent regression', ()=>{
@@ -110,6 +140,11 @@ describe('palette exact colors prevent regression', ()=>{
   it('hbm3e badge cyan vs h100 lime', ()=>{
     expect(palette.hbm3e).toBe('#0ec7ff')
     expect(palette.interposer).toBeDefined()
+  })
+  it('grace cpu teal muted #2EE6D6 and blackwell #080b09 accents', ()=>{
+    expect(palette.graceCpuHighlight).toBe('#2EE6D6')
+    expect(palette.board).toBe('#080b09')
+    expect(palette.nvlinkBridge).toBe('#7fee64')
   })
 })
 
