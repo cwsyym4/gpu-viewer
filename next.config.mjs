@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  transpilePackages: ['three'],
-  // removed typescript.ignoreBuildErrors and eslint.ignoreDuringBuilds – now strict
-  experimental: { cpus: 1 },
+  reactStrictMode: false,
+  typescript: { ignoreBuildErrors: false },
+  eslint: { ignoreDuringBuilds: false },
 }
 export default nextConfig

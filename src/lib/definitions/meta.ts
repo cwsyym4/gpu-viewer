@@ -1,10 +1,8 @@
 export const YEAR_META: Record<string,{year:number, process:string, transistors:string, tdp:string, bw:string, fp8:string, nvlink:string, provenanceStatus:'official'|'derived'|'estimated', sourceUrl?: string, asOf?:string}> = {
   'h100-sxm5': { year:2023, process:'4N TSMC', transistors:'80B', tdp:'700W', bw:'3.35TB/s', fp8:'989 TFLOPS (est)', nvlink:'900GB/s', provenanceStatus:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/h100/', asOf:'2023-03-21' },
   'b200-sxm': { year:2024, process:'4NP TSMC', transistors:'208B', tdp:'~1000W', bw:'8TB/s', fp8:'1.9 PFLOPS', nvlink:'1.8TB/s', provenanceStatus:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/b200/', asOf:'2024-03-18' },
-  // Blackwell: corrected: single Blackwell GPU 192GB, superchip 384/372, per GPU BW 8TB/s
   'blackwell-gb200': { year:2025, process:'4NP 2× reticle', transistors:'208B per GPU, 416B per superchip', tdp:'1200W GPU / 2700W superchip', bw:'8TB/s per GPU, 16TB/s per superchip, 372GB usable per superchip (384 raw)', fp8:'2.5 PFLOPS per GPU', nvlink:'NVLink 5 1.8TB/s per GPU, 3.6TB/s per superchip + C2C 900GB/s, 130TB/s NVL72', provenanceStatus:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/gb200-nvl72/', asOf:'2024-11-18' },
   'rubin-r100': { year:2026, process:'3nm + CoWoS-L', transistors:'336B (official July 2026)', tdp:'1400W', bw:'22TB/s HBM4', fp8:'4 PFLOPS', nvlink:'NVLink 6 3.6TB/s, C2C 1.8TB/s', provenanceStatus:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/rubin/', asOf:'2026-07-15' },
   'rubin-ultra-nvl576': { year:2027, process:'3nm + 3D', transistors:'~450B est', tdp:'1800W', bw:'32TB/s HBM4e', fp8:'6 PFLOPS env', nvlink:'NVL144/576 1PB/s class vision', provenanceStatus:'estimated', sourceUrl:'https://www.nvidia.com/en-us/data-center/rubin/', asOf:'2026-07-15' },
 }
-
 export const GPU_ORDER = ['h100-sxm5','b200-sxm','blackwell-gb200','rubin-r100','rubin-ultra-nvl576'] as const
