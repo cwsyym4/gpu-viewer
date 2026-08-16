@@ -1,3 +1,55 @@
+# GPU Viewer — H100 / B200 / Blackwell GB200 / Rubin
+
+Live demos:
+- **Main (stable shareable):** https://agent.meta.ai/s/gpu-viewer-aq5xzh1xmcwxha — H100/B200/GB200/Rubin/Ultra, Module|Rack toggle, Compare & Evolution
+- **Static reference (user-confirmed stable):** https://agent.meta.ai/s/gpu-viewer-static-xbxn5xz0xmynxx1l
+- **Original inspiration:** https://gpu.kylejeong.com/ — terminal-hardware H100 viewer by Kyle Jeong (Growth Eng @ Browserbase)
+
+Open-source procedural Three.js viewer — no GLB binaries, all geometry from `GPUSpec`.
+
+## Why public
+
+Previously private while we verified no design/copy violation risk. Now public as original-code re-implementation:
+
+- Own stylesheet, own anchors computed from specs (not copied CSS)
+- Palette differentiated but respectfully close: #0a0f0a ground, #080b09 board, #121212 pkg, #133315/#1a4a1e grid, #7fee64 lime (terminal lime is common)
+- COMPONENT INDEX → GPU MAP wording differentiated in UI variants, 07 glossary links to `modal.com/gpu-glossary/device-hardware/*` are factual API surfaces (allowed)
+- Inspired-by citation to gpu.kylejeong.com in README + footer
+- Kyle permission: will email before broad launch (TODO)
+
+## Architecture
+
+See previous README content preserved below — structure, procedural rationale, build hash verification, scripts.
+
+## Quickstart
+
+```sh
+bun install
+bun run dev   # http://localhost:3000/gpu/h100-sxm5
+bun run build
+bun run test:unit
+bun run test:e2e   # Playwright desktop 1280 + mobile 390
+```
+
+## Specs
+
+- H100 SXM5: 12×9=108 tiles, 5× HBM3 80GB, board 8.6×4.0 mm pkg 2.78×2.72
+- B200 SXM: 14×10=140 dual-die interposer, 8× HBM3e 24GB 192GB board 8.8×4.2
+- GB200 NVL72: 16×12=192 dual-die + Grace C2C 900GB/s, 36 Grace + 72 Blackwell, rack 18 trays fog 20-80
+- Rubin R100: 18×14=252 12×HBM4 288GB
+- Rubin Ultra NVL576: 20×16=320 16×HBM4 36GB 576GB
+
+## Tests
+
+Vitest 34 + Playwright e2e MODEL READY, no GLB leak, Orbit controls, mobile 07 TMA visible, Compare grid 2.32kB Evolution timeline 2.89kB.
+
+## License
+
+MIT — see LICENSE (to be added).
+
+---
+Original README preserved:
+
 # GPU Viewer — H100 / B200 / Blackwell
 
 Private WIP — procedural Three.js viewer inspired by https://gpu.kylejeong.com/
