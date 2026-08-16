@@ -1,4 +1,5 @@
 'use client'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { SceneViewport } from '@/components/scene/SceneViewport'
 import { getSpecSafe, partDefs, workloadOverlays } from '@/lib/definitions'

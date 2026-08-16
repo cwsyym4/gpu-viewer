@@ -1,4 +1,5 @@
 'use client'
+import Link from 'next/link'
 import { useState } from 'react'
 import { specs } from '@/lib/definitions'
 import { GPUSpecTable, specsSortedByYear } from '@/components/comparison/GPUSpecTable'
@@ -23,9 +24,9 @@ export default function ComparePage(){
     <div className="min-h-screen bg-[#0d180a] text-[#7fee64]/90">
       <GPUSelector />
       <div className="p-3 flex justify-between items-center border-b border-[#7fee64]/10">
-        <a href="/gpu/h100-sxm5" className="text-[12px] text-[#7fee64]/60">← H100</a>
+        <Link href="/gpu/h100-sxm5" className="text-[12px] text-[#7fee64]/60">← H100</Link>
         <div className="text-[13px] font-mono text-[#d8f9d9]">GPU Compare — up to 3 side-by-side · faithful boards no 64 cap · separate scales</div>
-        <a href="/gpu/evolution" className="text-[12px] text-[#7fee64]">Evolution →</a>
+        <Link href="/gpu/evolution" className="text-[12px] text-[#7fee64]">Evolution →</Link>
       </div>
       <div className="flex flex-wrap gap-2 p-2">
         {allIds.map(id=>{
@@ -45,7 +46,7 @@ export default function ComparePage(){
           const spec = specs[id]; if(!spec) return null
           return (
             <div key={id} className="border border-[#7fee64]/20 bg-[#0d180a]">
-              <div className="p-2 text-[12px] font-mono text-[#d8f9d9] border-b border-[#7fee64]/10">{spec.label} — {spec.module}<a href={`/gpu/${id}`} className="float-right text-[10px] text-[#7fee64]/60 underline">open 3D →</a></div>
+              <div className="p-2 text-[12px] font-mono text-[#d8f9d9] border-b border-[#7fee64]/10">{spec.label} — {spec.module}<Link href={`/gpu/${id}`} className="float-right text-[10px] text-[#7fee64]/60 underline">open 3D →</Link></div>
               <MiniBoard spec={spec} />
               <div className="p-2 text-[10px] font-mono text-[#7fee64]/60">Board {spec.boardSize[0]}×{spec.boardSize[2]} · Pack {spec.packageSize[0]}×{spec.packageSize[2]} · Tiles faithful {spec.dieTileColumns}×{spec.dieTileRows}={spec.dieTileColumns*spec.dieTileRows} · HBM {spec.hbm.count}×{spec.hbm.version.toUpperCase()} {spec.hbm.gbPerStack}GB={spec.hbm.totalGB}GB · {spec.dualDie?'dualDie interposer':''} · provenance {spec.provenance?.[0]?.status} {spec.provenance?.[0]?.asOf} <a href={spec.provenance?.[0]?.sourceUrl} className="underline ml-1">src</a></div>
             </div>

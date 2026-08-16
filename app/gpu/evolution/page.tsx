@@ -1,4 +1,5 @@
 'use client'
+import Link from 'next/link'
 import { useState } from 'react'
 import { EvolutionTimeline } from '@/components/comparison/EvolutionTimeline'
 import { MetricChart } from '@/components/comparison/MetricChart'
@@ -17,9 +18,9 @@ export default function EvolutionPage(){
     <div className="min-h-screen bg-[#080b09] text-[#7fee64]/90">
       <GPUSelector />
       <div className="border-b border-[#7fee64]/30 bg-[#0d180a] p-3 flex justify-between items-center">
-        <a href="/gpu/compare" className="text-[12px] text-[#7fee64]/60 font-mono">← Compare</a>
+        <Link href="/gpu/compare" className="text-[12px] text-[#7fee64]/60 font-mono">← Compare</Link>
         <div className="text-[13px] font-mono text-[#d8f9d9]">Evolution 2023→2028 · Horizontal timeline · reported/envelope numbers teaching · separate scales</div>
-        <a href="/gpu/h100-sxm5" className="text-[12px] text-[#7fee64]/60">GPU Viewer →</a>
+        <Link href="/gpu/h100-sxm5" className="text-[12px] text-[#7fee64]/60">GPU Viewer →</Link>
       </div>
       <EvolutionTimeline onSelect={setCur} />
       <div className="px-4 py-2 flex gap-2"><button data-testid="metric-evol-bw" onClick={()=> setMetric('bw')} className={`px-2 py-1 text-[10px] border rounded ${metric==='bw'?'bg-[#7fee64] text-black':'border-[#7fee64]/20'}`}>BW 0-32TB/s</button><button data-testid="metric-evol-power" onClick={()=> setMetric('power')} className={`px-2 py-1 text-[10px] border rounded ${metric==='power'?'bg-[#2EE6D6] text-black':'border-[#2EE6D6]/20'}`}>Power 0-1800W teal</button><button data-testid="metric-evol-nvlink" onClick={()=> setMetric('nvlink')} className={`px-2 py-1 text-[10px] border rounded ${metric==='nvlink'?'bg-[#7fee64] text-black':'border-[#7fee64]/20'}`}>NVL 0-7.2TB/s lime ridge 295→206 bottleneck TB/S</button></div>
