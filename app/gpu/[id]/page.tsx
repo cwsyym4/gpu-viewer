@@ -1,6 +1,7 @@
 import { getSpec, specs } from '@/lib/definitions'
 import ClientWrapper from './ClientWrapper'
 
+export const dynamic = 'force-static'
 export function generateStaticParams(){
   return Object.keys(specs).map(id=>({id}))
 }
