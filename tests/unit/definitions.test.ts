@@ -48,8 +48,42 @@ describe('GPUSpec validation', ()=>{
   it('blackwell dual die nvlink', ()=>{
     expect(blackwellSpec.dualDie).toBe(true)
     expect(blackwellSpec.nvlink).toBe(true)
+    expect(blackwellSpec.interposer).toBe(true)
     const errs = validateSpec(blackwellSpec)
     expect(errs).toEqual([])
+  })
+  it('blackwell 16x12 total 192 tiles across interposer 96 per die', ()=>{
+    expect(blackwellSpec.dieTileColumns).toBe(16)
+    expect(blackwellSpec.dieTileRows).toBe(12)
+    expect(blackwellSpec.dieTileColumns*blackwellSpec.dieTileRows).toBe(192)
+    const perDie = Math.floor(blackwellSpec.dieTileColumns/2)*blackwellSpec.dieTileRows
+    expect(perDie).toBe(96) // 8 cols per reticle *12 rows
+    expect(perDie*2).toBe(192)
+  })
+  it('blackwell 8 HBM north/south 4+4 not overlapping die centre', ()=>{
+    expect(blackwellSpec.hbm.count).toBe(8)
+    expect(blackwellSpec.hbm.totalGB).toBe(192)
+    expect(blackwellSpec.packageSites.length).toBe(8)
+    // check layout is 4 top (z < -0.8) 4 bottom (z > 0.8) to surround interposer
+    const north = blackwellSpec.packageSites.filter(s=> s.position[1] < -0.8)
+    const south = blackwellSpec.packageSites.filter(s=> s.position[1] > 0.8)
+    expect(north.length).toBe(4)
+    expect(south.length).toBe(4)
+    const dieHalfW = blackwellSpec.dieSize[0]/2
+    const dieHalfD = blackwellSpec.dieSize[2]/2
+    for(const site of blackwellSpec.packageSites){
+      const overlaps = Math.abs(site.position[0]) < dieHalfW*0.35 && Math.abs(site.position[1]) < dieHalfD*0.35
+      expect(overlaps, `GB200 HBM at ${site.position} overlaps die centre gap — should be north/south rows`).toBe(false)
+    }
+  })
+  it('blackwell architectural truth: larger package than B200', ()=>{
+    expect(blackwellSpec.packageSize[0]).toBeGreaterThan(b200Spec.packageSize[0]) // 3.6 >3.05
+    expect(blackwellSpec.packageSize[2]).toBeGreaterThan(b200Spec.packageSize[2])
+    expect(blackwellSpec.boardSize[0]).toBeGreaterThan(b200Spec.boardSize[0])
+  })
+  it('blackwell module label GB200 NVL72', ()=>{
+    expect(blackwellSpec.module).toBe('GB200 NVL72 MODULE')
+    expect(blackwellSpec.label.includes('GB200')).toBe(true)
   })
 })
 

@@ -58,7 +58,7 @@ Our build hash: `_next/static/chunks/app/page-*.js` after `bun run build`. Find 
 - Component index 07 parts clickable, popover, OPEN GLOSSARY modal.com
 - OrbitControls min 6.8 max 24 minPolar 0.35 maxPolar 1.48
 
-## Next — B200 ✅
+## Next — B200 ✅ / Blackwell GB200 ✅ (true dual-die + NVL72)
 
 **B200 SXM true variant now implemented** (not just toggled H100):
 
@@ -69,15 +69,43 @@ Our build hash: `_next/static/chunks/app/page-*.js` after `bun run build`. Find 
   - Tile palette same 6 colors but 0.074 mesh vs 0.078 for density
   - Interposer line `#0e3014` mesh between dies when `spec.interposer=true`
 - HBM 8× HBM3e 24GB = 192GB total (4+4 layout around die) vs H100 5× HBM3 16GB=80GB
-  - Positions `[-.98,-.82],[0,-.82],[.98,-.82],[-.98,-.16],[.98,-.16],[-.98,.62],[0,.62],[.98,.62]`
-  - Badge cyan `#0ec7ff` vs H100 lime `#7fee64` — visual distinction
-  - No overlap check: `Math.abs(x) < dieHalfW*0.6 && |z|<dieHalfD*0.6` fails for all 8 sites
-- Board power stages / clamps / contacts reused from H100 but validated fit inside 8.8 width
-- Palette additions: `hbm3e:#0ec7ff`, `interposer:#0e3014` — keep terminal-dark #080b09, fog #0d180a unchanged
+  - Badge cyan `#0ec7ff` vs H100 lime `#7fee64`
+- Palette additions: `hbm3e:#0ec7ff`, `interposer:#0e3014`
 
-**Dynamic spec rendering:**
-- `GPUClient` now loads spec by id (`getSpec`), scales `partDefs` anchors by package ratio (`scaleX = pkg[0]/2.78`, `scaleZ = pkg[2]/2.72` mild 0.6+0.4*scale)
-  - HBM3e part title becomes `GPU RAM / HBM3e — HBM3e`
+**GB200 Grace Blackwell Superchip true dual-reticle:**
+
+Architecture truth per NVIDIA GB200 announcement:
+- 2× Blackwell dies co-packaged on interposer + Grace CPU via NVLink-C2C 900GB/s
+- 208B transistors total package, 192GB HBM3e per Superchip (8 stacks ×24GB)
+- NVL72 rack = 36× Grace CPUs + 72× Blackwell GPUs, 18× compute trays ×2 Grace +4 Blackwell, full NVLink domain 130TB/s
+
+Implementation:
+- `boardSize [9.2,0.28,4.6]` package `[3.6,0.42,3.4]` die `[1.85,0.12,1.55]` — larger than B200
+- Tiles 16×12 =192 total across interposer ~96 per reticle, gap 0.34 (vs B200 0.12) representing NVLink-C2C bridge 900GB/s
+- PackageSites 8: 4 north row (z -1.15) + 4 south row (z +1.15) at x -1.32/-0.44/0.44/1.32 — surrounds interposer, not overlapping die
+- Visuals:
+  * interposer base plate larger `#0f2211` under both dies
+  * dual die meshes side-by-side dieW=(1.85/2-0.17) ~0.84, dieD 1.55, metalness 0.72 roughness 0.22
+  * NVLink bridge thin emissive `#7fee64` pulse via useFrame emissiveIntensity 0.4→1.3, 3 bumps at C2C link, label
+  * Grace CPU box at board corner [3.1,0.26,-1.62] 1.08×0.13×0.74 muted teal `#294d52` highlight `#2a6b6f`, C2C wire to package, badge `Grace CPU 900GB/s C2C`
+  * HBM3e stacks cyan tiles surrounding north/south, same instancing as B200
+- PartDefs: base 07 + 08 NVLink (onlyFor GB200/B200) +09 Grace CPU (only GB200) → COMPONENT INDEX 09 PARTS for GB200, 07 for others
+- Rack view: `src/components/rack/NVL72Rack.tsx` toggle Module | Rack button in header when GB200
+  * 18 trays stacked y=-7.2 step 0.9, each tray chassis 6.02×0.08×3.66, 2 Grace 0.84×0.14×0.72 teal +4 Blackwell 0.78×0.11×0.76 black per tray
+  * vertical NVLink spine emissive lime #7fee64
+  * OrbitControls rack-mode minDist 10 max 80 minPolar 0.15 maxPolar 1.62 enablePan true, camera fov 28 pos [11.5,8.2,14.8], grid fade 28 fog #090f0a
+  * RackStats overlay bottom left: 18× trays · 72 GPU · 36 CPU · NVLink domain 130TB/s · C2C 900GB/s
+
+Guardrails:
+- 16 tests → 19 tests now: Blackwell board fits, 192 tiles 96 per die, 8 sites north/south, C2C 900GB/s presence flag, larger package than B200, module label GB200 NVL72 MODULE
+- Tile count validation for each GPU validates procedural only—no GLB fallback possible same as H100 lesson
+- Build still 8/8 static: /gpu/h100-sxm5, /gpu/b200-sxm, /gpu/blackwell-gb200
+
+## Testing Blackwell
+
+- `bun run test:unit` 19 pass 3.3s
+- `bun run build` still 8/8 static, First Load JS ~101kB shared
+- `bun run dev` /gpu/blackwell-gb200 → drag to see dual reticle gap pulse, Rack View button → 72 GPU tower, orbit min 10 max 80
   - Extra popover detail when b200: `8× HBM3e 24GB =192GB • 8-stack 4+4 • BW ~8TB/s`
   - Dual-die detail: `Dual-die 140 tiles 14×10 • interposer yes`
 - Header `{labelShort} GPU Glossary` dynamic not hardcoded H100

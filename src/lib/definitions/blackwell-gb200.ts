@@ -11,15 +11,17 @@ export const blackwellSpec: GPUSpec = {
   dieSize: [1.85,0.12,1.55],
   dieTileColumns: 16,
   dieTileRows: 12,
+  // true Blackwell: dual reticle die on interposer, 4 HBM north + 4 HBM south
+  // 8 stacks total, 24GB each =192GB, surrounding interposer not overlapping die
   packageSites: [
-    {position:[-1.12,-.92],kind:'memory'},
-    {position:[0,-.92],kind:'memory'},
-    {position:[1.12,-.92],kind:'memory'},
-    {position:[-1.12,0],kind:'memory'},
-    {position:[1.12,0],kind:'memory'},
-    {position:[-1.12,.92],kind:'memory'},
-    {position:[0,.92],kind:'memory'},
-    {position:[1.12,.92],kind:'memory'},
+    {position:[-1.32,-1.15],kind:'memory'},
+    {position:[-0.44,-1.15],kind:'memory'},
+    {position:[0.44,-1.15],kind:'memory'},
+    {position:[1.32,-1.15],kind:'memory'},
+    {position:[-1.32,1.15],kind:'memory'},
+    {position:[-0.44,1.15],kind:'memory'},
+    {position:[0.44,1.15],kind:'memory'},
+    {position:[1.32,1.15],kind:'memory'},
   ],
   mountingHoles: h100Spec.mountingHoles,
   leftPowerStages: h100Spec.leftPowerStages,
@@ -31,3 +33,5 @@ export const blackwellSpec: GPUSpec = {
   nvlink: true,
   interposer: true,
 }
+
+export const blackwellTiles = 16*12 // 192 total across interposer, ~96 per die

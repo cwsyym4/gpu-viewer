@@ -27,7 +27,7 @@ export interface GPUSpec {
   interposer?: boolean
 }
 
-export type GPUPartId = 'cuda-architecture' | 'gpu-ram' | 'gpc' | 'sm' | 'tensor-core' | 'cuda-core' | 'tma'
+export type GPUPartId = 'cuda-architecture' | 'gpu-ram' | 'gpc' | 'sm' | 'tensor-core' | 'cuda-core' | 'tma' | 'nvlink' | 'grace-cpu'
 
 export interface PartDef {
   id: GPUPartId
@@ -38,6 +38,7 @@ export interface PartDef {
   glossaryUrl: string
   view: 'exterior' | 'architecture'
   anchor: Vec3
+  onlyFor?: string[] // optional GPU ids where this part is relevant
 }
 
 export function validateSpec(spec: GPUSpec): string[] {
