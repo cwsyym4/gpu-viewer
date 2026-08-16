@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="color-scheme" content="light"/>
+<link rel="icon" href="data:,"/>
+<title>H100 Clone</title>
+<style>
+:root{--ground:#0d180a;--green:#7fee64;--green-80:rgb(127 238 100/80%);--green-60:rgb(127 238 100/60%);--green-20:rgb(127 238 100/20%);--green-10:rgb(127 238 100/10%);--ink:#d8f9d9;--rule:#7fee64;--font-mono:"SFMono-Regular","Cascadia Code",Consolas,"Liberation Mono",monospace}
+*{box-sizing:border-box}html,body{width:100%;min-height:100%;margin:0;overflow:hidden;background:var(--ground);color:var(--green);font-family:var(--font-mono)}
+a,button{font:inherit}button{color:inherit}
+a:focus-visible,button:focus-visible{outline:1px solid var(--green);outline-offset:3px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.page-frame{width:100vw;height:100svh;padding:16px;background:linear-gradient(rgb(127 238 100/2%) 1px,transparent 1px),linear-gradient(90deg,rgb(127 238 100/2%) 1px,transparent 1px),var(--ground);background-size:32px 32px}
+.terminal-shell{display:grid;grid-template-rows:63px minmax(0,1fr);width:100%;height:100%;border:1px solid var(--rule);background:var(--ground)}
+.site-header{display:grid;grid-template-columns:1fr 1fr 2fr;align-items:center;border-bottom:1px solid var(--rule)}
+.brand-lockup{display:flex;align-items:center;min-width:0;height:100%;gap:10px;padding:0 16px;font-size:24px;letter-spacing:-.04em;white-space:nowrap}
+.brand-lockup strong{color:var(--ink);font-weight:600}.brand-lockup>span:last-child{font-size:18px;color:var(--green-80)}
+.header-title{justify-content:center;border-left:1px solid rgb(127 238 100/28%);border-right:1px solid rgb(127 238 100/28%);color:var(--green-80);font-size:14px;letter-spacing:.08em}
+.header-actions,.header-title{display:flex;align-items:center;height:100%}
+.header-actions{justify-content:flex-end;gap:18px;padding:0 16px}
+.view-switch{display:flex;align-items:center;gap:14px}
+.text-control,.view-switch button{padding:0;border:0;background:transparent;color:var(--green-60);font-size:13px;cursor:pointer}
+.text-control:hover,.view-switch button:hover,.view-switch button[data-active=true]{color:var(--green)}
+.text-control{padding:5px 9px;background:var(--green-10);text-transform:uppercase}
+.help-button{display:grid;width:32px;height:32px;padding:0;place-items:center;border:1px solid var(--green);border-radius:50%;background:transparent;cursor:pointer}
+.help-button:hover{background:var(--green);color:var(--ground)}
+.explorer-grid{display:grid;grid-template-columns:25% 75%;min-height:0}
+.part-rail{display:flex;min-height:0;flex-direction:column;overflow:hidden;border-right:1px dashed var(--rule)}
+.rail-heading{display:flex;justify-content:space-between;padding:22px 18px 18px;color:var(--green-80);font-size:13px;letter-spacing:.08em}
+.rail-heading span:last-child{color:var(--green-60)}
+.part-list{display:flex;flex-direction:column}
+.part-list a{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;min-height:44px;grid-gap:10px;gap:10px;padding:8px 18px;color:var(--green-80);text-decoration:none;border-top:1px solid rgb(127 238 100/8%);transition:background-color .15s ease,color .15s ease;cursor:pointer}
+.part-list a:last-child{border-bottom:1px solid rgb(127 238 100/8%)}
+.part-list a:hover,.part-list a[data-active=true]{background:var(--green);color:var(--ground)}
+.part-index{color:currentColor;opacity:.55;font-size:12px}
+.part-list small{padding:2px 5px;background:var(--green-10);color:currentColor;font-size:11px}
+.part-list a:hover small,.part-list a[data-active=true] small{background:rgb(13 24 10/12%)}
+.rail-footer{display:flex;flex-direction:column;gap:8px;margin-top:auto;padding:18px;border-top:1px solid var(--green-20);color:var(--green-60);font-size:11px;letter-spacing:.08em}
+.rail-footer span:before{content:"→";margin-right:8px;color:var(--green)}
+.scene-stage{position:relative;min-width:0;min-height:0;overflow:hidden;background:var(--ground)}
+.canvas-wrap{position:absolute;inset:0;cursor:-webkit-grab;cursor:grab;touch-action:none}
+.canvas-wrap:active{cursor:-webkit-grabbing;cursor:grabbing}
+.canvas-wrap canvas{display:block}
+.scene-fallback{display:grid;width:100%;height:100%;place-items:center;color:var(--green-60);font-size:13px;letter-spacing:.08em}
+.stage-hint,.stage-path,.stage-status,.view-label{position:absolute;z-index:10;pointer-events:none}
+.stage-path{top:20px;left:24px;color:var(--green-60);font-size:13px}
+.view-label{top:20px;right:24px;display:flex;align-items:center;gap:10px;color:var(--green-80);font-size:11px;letter-spacing:.08em}
+.status-dot,.view-label i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px rgb(127 238 100/70%)}
+.stage-status{left:24px;display:flex;align-items:center;gap:9px;color:var(--green-80)}
+.stage-hint,.stage-status{bottom:18px;font-size:11px;letter-spacing:.08em}
+.stage-hint{right:24px;color:var(--green-60)}
+.part-popover{position:absolute;width:300px;border:1px solid var(--green);background:rgb(13 24 10/97%);color:var(--green-80);padding:13px 14px 14px;box-shadow:0 0 0 1px rgb(13 24 10/80%);pointer-events:auto;z-index:12;transform:translate3d(0,0,0);transition:opacity .15s}
+.part-popover.hidden{opacity:0;pointer-events:none}
+.popover-kicker{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;color:var(--green-60);font-size:10px;letter-spacing:.08em}
+.popover-kicker b{padding:2px 5px;background:var(--green-20);color:var(--green);font-weight:500}
+.part-popover h2{margin:0 0 8px;color:var(--green);font-size:19px;font-weight:500;line-height:1.2}
+.part-popover p{margin:0 0 12px;font-size:13px;line-height:1.5}
+.part-popover a{display:inline-block;padding:4px 6px;background:var(--green-20);color:var(--green);font-size:11px;letter-spacing:.06em;text-decoration:none}
+.part-popover a:hover{background:var(--green);color:var(--ground)}
+.help-panel{position:absolute;z-index:20;top:52px;right:24px;width:min(330px,calc(100% - 48px));padding:18px;border:1px solid var(--green);background:rgb(13 24 10/97%);color:var(--green-80)}
+.help-panel>button{position:absolute;top:8px;right:9px;padding:0;border:0;background:transparent;font-size:20px;cursor:pointer}
+.help-panel>span{color:var(--green);font-size:12px;letter-spacing:.08em}
+.help-panel p{margin:10px 0 0;font-size:13px;line-height:1.55}
+.mobile-part-bar{display:none;position:relative;padding-right:20px}
+.mobile-part-bar::after{content:"";position:absolute;right:0;top:0;bottom:0;width:28px;background:linear-gradient(to right, transparent, var(--ground));pointer-events:none;opacity:.9}
+.b200-badge{margin-left:10px;padding:2px 6px;border:1px solid var(--green-60);font-size:10px;letter-spacing:.06em;color:var(--green-80)}
+/* B200 mode flag - when enabled via ?b200=1 or console, toggle row shows */
+:root[data-b200="1"] #b200ToggleRow{display:flex !important}
+@media (max-width:1050px){
+.site-header{grid-template-columns:1fr 1fr}.header-title{display:none}
+.part-list a{grid-template-columns:26px minmax(0,1fr);padding-inline:12px}
+.part-list small{display:none}
+.part-popover{width:260px}
+}
+@media (max-width:839px){
+html,body{overflow:hidden}.page-frame{padding:0}.terminal-shell{grid-template-rows:66px minmax(0,1fr) 54px;border:0}
+.site-header{grid-template-columns:minmax(0,1fr) auto;padding:0 10px}
+.brand-lockup{gap:7px;padding:0;font-size:20px}.brand-lockup>span:last-child{font-size:14px}
+.header-actions{gap:10px;padding:0}.view-switch{gap:8px}
+.view-switch button{width:36px;height:32px;overflow:hidden;padding:0;font-size:0}
+.view-switch button:before{content:"EXT";font-size:11px}
+.view-switch button:last-child:before{content:"ARCH"}
+.view-switch button[data-active=true]{background:var(--green-20)}
+.text-control{display:none}.help-button{width:30px;height:30px}
+.explorer-grid{display:block;min-height:0}.part-rail{display:none}
+.scene-stage{width:100%;height:100%}
+.stage-path{top:17px;left:16px;max-width:58vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.view-label{top:18px;right:16px}.view-label span{display:block;max-width:38vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stage-status{bottom:15px;left:16px}.stage-hint{right:16px;bottom:15px}
+.part-popover{width:min(310px,calc(100vw - 32px))}
+.mobile-part-bar{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;padding:8px 20px 8px 10px;border-top:1px solid var(--green);overflow:visible}
+.mobile-part-bar::after{display:none}
+.mobile-part-bar button{flex:0 0 auto;padding:4px 4px;border:1px solid var(--green-20);background:transparent;color:var(--green-60);font-size:8.5px;letter-spacing:.03em;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;justify-content:center}
+.mobile-part-bar button[data-active=true]{border-color:var(--green);background:var(--green);color:var(--ground)}
+}
+@media (prefers-reduced-motion:reduce){*,:after,:before{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<main class="page-frame">
+<div class="terminal-shell">
+<header class="site-header">
+<div class="brand-lockup" aria-label="H100 GPU Glossary"><strong>H100</strong><span>GPU Glossary</span><span id="b200Tag" class="b200-badge" style="display:none">B200 • 192GB</span></div>
+<div class="header-title" aria-hidden="true">H100 / ARCHITECTURE</div>
+<div class="header-actions">
+<div class="view-switch" aria-label="Model view">
+<button type="button" id="btnExterior" data-active="true">Exterior</button>
+<button type="button" id="btnArch" data-active="false">Architecture</button>
+</div>
+<button type="button" class="text-control" id="btnReset">Reset view</button>
+<button type="button" class="help-button" id="btnHelp" aria-label="Toggle controls help" aria-expanded="false">?</button>
+</div>
+</header>
+<div class="explorer-grid">
+<aside class="part-rail" aria-label="GPU components">
+<div class="rail-heading"><span>COMPONENT INDEX</span><span>07 PARTS</span></div>
+<nav class="part-list" id="partList"></nav>
+<div class="rail-footer"><span>DRAG TO ROTATE</span><span>SCROLL TO ZOOM</span><span>HOVER TO INSPECT</span>
+<div id="b200ToggleRow" style="margin-top:10px;display:none;gap:6px"><button id="btnH100" style="padding:4px 6px;border:1px solid var(--green);background:var(--green);color:var(--ground);font-size:10px;cursor:pointer">H100 SXM5</button><button id="btnB200" style="padding:4px 6px;border:1px solid var(--green-20);background:transparent;color:var(--green-60);font-size:10px;cursor:pointer">B200 SXM</button></div>
+</div>
+</aside>
+<section class="scene-stage" aria-label="Interactive 3D model of an H100 GPU">
+<h1 class="sr-only">Interactive NVIDIA H100 GPU architecture glossary</h1>
+<div class="stage-path">/device-hardware/h100-sxm</div>
+<div class="view-label"><span id="viewLabelText">H100 SXM5 MODULE</span><i></i></div>
+<div class="canvas-wrap" id="canvasWrap"><div class="scene-fallback" id="fallback">INITIALIZING GPU MODEL_</div></div>
+<div class="part-popover hidden" id="popover">
+<div class="popover-kicker"><span id="popKicker">01 / COMPONENT</span><b id="popAbbr" style="display:none"></b></div>
+<h2 id="popTitle"></h2>
+<p id="popDesc"></p>
+<a id="popLink" target="_blank" rel="noreferrer">OPEN GLOSSARY ↗</a>
+</div>
+<div id="helpPanel" class="help-panel" style="display:none" role="dialog" aria-label="3D controls">
+<button type="button" id="helpClose" aria-label="Close help">×</button><span>CONTROLS</span>
+<p>Drag to rotate. Scroll or pinch to zoom. Hover a component to inspect it.</p>
+<p>Desktop component clicks open Modal. Touch taps pin a card first. Press ESC to clear.</p>
+<p style="margin-top:10px;color:var(--green-60)">B200 mode scales HBM to 8×24GB stacks (192GB total) and enlarges die — layout based on NVIDIA B200 SXM thermal design.</p>
+</div>
+<div class="stage-status" aria-live="polite"><span class="status-dot"></span><span id="statusText">MODEL READY</span></div>
+<div class="stage-hint" id="hintText">DRAG TO BEGIN</div>
+</section>
+</div>
+<nav class="mobile-part-bar" id="mobileBar" aria-label="GPU component shortcuts"></nav>
+</div>
+</main>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+// ---------- DATA from original ----------
+const PARTS = [
+  {id:"cuda-architecture",index:"01",title:"CUDA architecture (conceptual)",abbreviation:"CUDA",description:"A conceptual map of the repeated processing units inside the physical GH100 package.",glossaryUrl:"https://modal.com/gpu-glossary/device-hardware/cuda-device-architecture",view:"exterior",anchor:[0,1.32,0]},
+  {id:"gpu-ram",index:"02",title:"GPU RAM",abbreviation:"HBM3",description:"High-bandwidth memory placed beside the GPU die to keep its processors fed with data.",glossaryUrl:"https://modal.com/gpu-glossary/device-hardware/gpu-ram",view:"exterior",anchor:[-.84,1.24,-.72]},
+  {id:"gpc",index:"03",title:"GPU Processing Cluster",abbreviation:"GPC",description:"A top-level cluster that groups texture and streaming multiprocessor resources.",glossaryUrl:"https://modal.com/gpu-glossary/device-hardware/graphics-processing-cluster",view:"architecture",anchor:[-.95,1.12,-.55]},
+  {id:"sm",index:"04",title:"Streaming Multiprocessor",abbreviation:"SM",description:"The repeating processor that schedules and executes groups of GPU threads.",glossaryUrl:"https://modal.com/gpu-glossary/device-hardware/streaming-multiprocessor",view:"architecture",anchor:[.55,1.22,-.52]},
+  {id:"tensor-core",index:"05",title:"Tensor Core",description:"Specialized compute hardware for the matrix operations used heavily in machine learning.",glossaryUrl:"https://modal.com/gpu-glossary/device-hardware/tensor-core",view:"architecture",anchor:[-.52,1.34,.52]},
+  {id:"cuda-core",index:"06",title:"CUDA Core",description:"A scalar arithmetic unit inside an SM used for general GPU computation.",glossaryUrl:"https://modal.com/gpu-glossary/device-hardware/cuda-core",view:"architecture",anchor:[.1,1.34,.52]},
+  {id:"tma",index:"07",title:"Tensor Memory Accelerator",abbreviation:"TMA",description:"Hardware that moves multidimensional tensor data between memory spaces.",glossaryUrl:"https://modal.com/gpu-glossary/device-hardware/tensor-memory-accelerator",view:"architecture",anchor:[.76,1.34,.52]}
+];
+const U_H100 = {
+  boardSize:[8.6,.22,4],
+  packageSize:[2.78,.34,2.72],
+  dieSize:[1.42,.1,1.18],
+  packageSites:[
+    {position:[-.84,-.72],kind:"memory"},
+    {position:[0,-.72],kind:"memory"},
+    {position:[.84,-.72],kind:"memory"},
+    {position:[-.84,.72],kind:"memory"},
+    {position:[0,.72],kind:"memory"},
+    {position:[.84,.72],kind:"structural"}
+  ],
+  mountingHoles:[[-2.72,-1.58],[-2.18,-1.58],[2.2,-1.58],[2.74,-1.58],[-2.72,1.58],[-2.18,1.58],[2.2,1.58],[2.74,1.58]],
+  leftPowerStages:(function(){const a=[-3.88,-3.52,-3.16], b=[-1.38,-.92,-.46,0,.46,.92,1.38]; return b.flatMap(z=>a.map(x=>[x,z]))})(),
+  rightPowerStages:(function(){const a=[2.7,3.08,3.46,3.84], b=[-1.1,-.64,-.18,.28,.74,1.2]; return b.flatMap(z=>a.map(x=>[x,z]))})(),
+  topClampPositions:[-1.65,-.56,.56,1.65],
+  sideContacts:[-1.54,-1.26,-.98,-.7,-.42,-.14,.14,.42,.7,.98,1.26,1.54],
+  dieTileColumns:12,
+  dieTileRows:9
+};
+const U_B200 = {
+  // PREP: true B200 SXM5 spec - deferred implementation
+  // - dual-die (2x reticle), 14x10 tiles placeholder for larger die
+  // - 8x HBM3e 24GB stacks = 192GB (positions already 8)
+  // - interposer, NVLink, power map TBD - keep H100 layout for now until H100 1:1 locked
+  boardSize:[8.8,.24,4.2],
+  packageSize:[3.05,.38,2.95],
+  dieSize:[1.62,.11,1.36],
+  packageSites:[
+    {position:[-.98,-.82],kind:"memory"},
+    {position:[0,-.82],kind:"memory"},
+    {position:[.98,-.82],kind:"memory"},
+    {position:[-.98,-.16],kind:"memory"},
+    {position:[.98,-.16],kind:"memory"},
+    {position:[-.98,.62],kind:"memory"},
+    {position:[0,.62],kind:"memory"},
+    {position:[.98,.62],kind:"memory"}
+  ],
+  mountingHoles: U_H100.mountingHoles,
+  leftPowerStages: U_H100.leftPowerStages,
+  rightPowerStages: U_H100.rightPowerStages,
+  topClampPositions: U_H100.topClampPositions,
+  sideContacts: U_H100.sideContacts,
+  dieTileColumns:14,
+  dieTileRows:10
+};
+
+const GREEN="#7fee64";
+const TILE_PALETTE=["#9a6d2c","#a58c35","#728b3f","#3e8053","#347271","#554f7f"];
+
+let currentBoard = 'h100';
+let U = U_H100;
+let state = { view:'exterior', hovered:null, selected:null, userInteracted:false, resetToken:0 };
+let scene, camera, renderer, controls;
+let h100Group, archGroup;
+let dieTiles=[], hbmGroups=[], gpcMeshes=[], smMesh, tcMeshes=[], cudaMeshes=[], tmaMesh;
+let partMeshes = [];
+let raycaster = new THREE.Raycaster();
+let mouse = new THREE.Vector2();
+let pointerDownPos=null;
+
+// DOM refs
+const wrap = document.getElementById('canvasWrap');
+const fallback = document.getElementById('fallback');
+const popover = document.getElementById('popover');
+const popKicker = document.getElementById('popKicker');
+const popAbbr = document.getElementById('popAbbr');
+const popTitle = document.getElementById('popTitle');
+const popDesc = document.getElementById('popDesc');
+const popLink = document.getElementById('popLink');
+const statusText = document.getElementById('statusText');
+const viewLabelText = document.getElementById('viewLabelText');
+const hintText = document.getElementById('hintText');
+const btnExterior = document.getElementById('btnExterior');
+const btnArch = document.getElementById('btnArch');
+const btnReset = document.getElementById('btnReset');
+const btnHelp = document.getElementById('btnHelp');
+const helpPanel = document.getElementById('helpPanel');
+const partList = document.getElementById('partList');
+const mobileBar = document.getElementById('mobileBar');
+const b200Tag = document.getElementById('b200Tag');
+
+// --- B200 MODE INFRASTRUCTURE (prep for true B200 SXM) ---
+// Flag: H100 is default for 1:1 verification. Enable B200 mode via ?b200=1 or console: document.documentElement.dataset.b200="1"
+// Next step true B200: dual-die, 8x HBM3e 24GB =192GB, interposer, NVLink fabric, power map - implementation deferred until H100 sign-off
+let IS_B200_ENABLED = false;
+try{
+  const params = new URLSearchParams(location.search);
+  if(params.get('b200')==='1'){ IS_B200_ENABLED=true; document.documentElement.dataset.b200='1'; document.getElementById('b200ToggleRow').style.display='flex'; }
+  // expose for console toggle
+  window.enableB200Mode = ()=>{ IS_B200_ENABLED=true; document.documentElement.dataset.b200='1'; document.getElementById('b200ToggleRow').style.display='flex'; };
+  window.disableB200Mode = ()=>{ IS_B200_ENABLED=false; document.documentElement.dataset.b200='0'; document.getElementById('b200ToggleRow').style.display='none'; };
+}catch(e){}
+
+// Build part list UI
+function buildLists(){
+  partList.innerHTML='';
+  mobileBar.innerHTML='';
+  const mobileAbbr = { "tensor-core":"TC", "cuda-core":"CC" };
+  PARTS.forEach(p=>{
+    const a=document.createElement('a');
+    a.dataset.id=p.id;
+    a.innerHTML=`<span class="part-index">${p.index}</span><span>${p.title}</span>${p.abbreviation?`<small>${p.abbreviation}</small>`:''}`;
+    a.onclick=(e)=>{e.preventDefault(); selectPart(p.id);};
+    a.onmouseenter=()=>previewPart(p.id);
+    a.onmouseleave=()=>clearPreview();
+    partList.appendChild(a);
+    const b=document.createElement('button');
+    b.dataset.id=p.id;
+    const label = p.abbreviation || mobileAbbr[p.id] || p.title.split(' ')[0];
+    b.textContent=`${p.index} ${label}`;
+    b.onclick=()=>selectPart(p.id);
+    mobileBar.appendChild(b);
+  });
+}
+buildLists();
+
+function activeId(){ return state.hovered || state.selected; }
+
+function previewPart(id){ state.hovered=id; updateUI(); }
+function clearPreview(){ state.hovered=null; updateUI(); }
+function selectPart(id){
+  const p = PARTS.find(x=>x.id===id);
+  if(!p) return;
+  state.selected=id;
+  state.view=p.view;
+  state.userInteracted=true;
+  updateUI();
+  // open glossary on fine pointer
+  if(window.matchMedia('(pointer: fine)').matches){
+    // defer to keep popover visible a moment, then open
+    setTimeout(()=>window.open(p.glossaryUrl,'_blank','noopener,noreferrer'), 80);
+  }
+  // update camera focus slightly?
+  focusOnAnchor(p.anchor);
+}
+function focusOnAnchor(anchor){
+  // nudge controls target towards anchor height
+  if(controls){
+    controls.target.lerp(new THREE.Vector3(anchor[0]*0.2, 0.35+anchor[1]*0.05, anchor[2]*0.2), 0.12);
+    controls.update();
+  }
+}
+
+function updateUI(){
+  const aid = activeId();
+  document.querySelectorAll('[data-id]').forEach(el=>{
+    el.dataset.active = (el.dataset.id===aid) ? 'true' : 'false';
+  });
+  btnExterior.dataset.active = (state.view==='exterior')+'';
+  btnArch.dataset.active = (state.view==='architecture')+'';
+  viewLabelText.textContent = state.view==='exterior' ? (currentBoard==='h100'?'H100 SXM5 MODULE':'B200 SXM MODULE') : 'ILLUSTRATIVE ARCHITECTURE VIEW';
+  statusText.textContent = aid ? PARTS.find(p=>p.id===aid).title.toUpperCase() : 'MODEL READY';
+  hintText.textContent = state.userInteracted ? 'ESC TO CLEAR' : 'DRAG TO BEGIN';
+  // popover
+  if(aid){
+    const p = PARTS.find(x=>x.id===aid);
+    popKicker.textContent = `${p.index} / COMPONENT`;
+    if(p.abbreviation){ popAbbr.textContent=p.abbreviation; popAbbr.style.display='inline-block'; } else popAbbr.style.display='none';
+    popTitle.textContent=p.title;
+    popDesc.textContent=p.description;
+    popLink.href=p.glossaryUrl;
+    popover.classList.remove('hidden');
+  } else {
+    popover.classList.add('hidden');
+  }
+  // colors update triggered in render loop
+  // arch group visibility
+  if(archGroup) archGroup.visible = (state.view==='architecture');
+}
+
+updateUI();
+
+// THREE setup
+
+
+function initThree(){
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color('#0d180a');
+  scene.fog = new THREE.Fog('#0d180a', 24, 42);
+
+  camera = new THREE.PerspectiveCamera(32, wrap.clientWidth / wrap.clientHeight, 0.1, 100);
+  camera.position.set(9.2,6.5,9.6);
+
+  renderer = new THREE.WebGLRenderer({antialias:true, alpha:true, powerPreference:'high-performance', preserveDrawingBuffer:true});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.02;
+
+  fallback.replaceWith(renderer.domElement);
+
+  controls = new OrbitControls(camera, renderer.domElement);
+  controls.target.set(0,.35,0);
+  controls.enablePan=false;
+  controls.enableDamping=true;
+  controls.dampingFactor=0.065;
+  controls.minDistance=6.8;
+  controls.maxDistance=24;
+  controls.minPolarAngle=0.35;
+  controls.maxPolarAngle=1.48;
+  controls.autoRotate= true;
+  controls.autoRotateSpeed=0.55;
+  controls.addEventListener('start', ()=>{ state.userInteracted=true; controls.autoRotate=false; updateUI(); });
+
+  // lights
+  const amb = new THREE.AmbientLight(0xffffff, 0.65);
+  scene.add(amb);
+  const dir1 = new THREE.DirectionalLight(0xf4fff3, 2.2);
+  dir1.position.set(6,10,8);
+  dir1.castShadow=true;
+  dir1.shadow.mapSize.set(2048,2048);
+  scene.add(dir1);
+  const dir2 = new THREE.DirectionalLight(0xdce6dc, 1.6);
+  dir2.position.set(-6,5,-4);
+  scene.add(dir2);
+  const point = new THREE.PointLight(GREEN, 4, 15);
+  point.position.set(0,2,7);
+  scene.add(point);
+
+  const grid = new THREE.GridHelper(18,36, 0x1a4a1e, 0x133315);
+  grid.position.set(0,-.52,0);
+  scene.add(grid);
+  // contact shadow approximation
+  const shadowCatcher = new THREE.Mesh(new THREE.PlaneGeometry(11,11), new THREE.ShadowMaterial({opacity:0.32}));
+  shadowCatcher.rotation.x=-Math.PI/2;
+  shadowCatcher.position.y=-0.5;
+  shadowCatcher.receiveShadow=true;
+  scene.add(shadowCatcher);
+
+  buildGPU();
+
+  window.addEventListener('resize', onResize);
+  renderer.domElement.addEventListener('pointermove', onPointerMove);
+  renderer.domElement.addEventListener('pointerdown', onPointerDown);
+  renderer.domElement.addEventListener('click', onClick);
+  renderer.domElement.addEventListener('pointerleave', ()=>{ clearPreview(); });
+  
+  animate();
+}
+
+function roundedBox(w,h,d,r,segments=3,color="#080b09",metal=.3,rough=.5,cast=true,receive=false){
+  const geo = new RoundedBoxGeometry(w,h,d,segments,r);
+  const mat = new THREE.MeshStandardMaterial({color, metalness:metal, roughness:rough});
+  const mesh = new THREE.Mesh(geo,mat);
+  mesh.castShadow=cast;
+  mesh.receiveShadow=receive||cast;
+  return mesh;
+}
+
+function buildGPU(){
+  if(h100Group){ scene.remove(h100Group); h100Group=null; }
+  dieTiles=[]; hbmGroups=[]; gpcMeshes=[]; partMeshes=[];
+  // fresh group
+  h100Group = new THREE.Group();
+  h100Group.name='h100-sxm5';
+  h100Group.rotation.y=-0.08;
+  h100Group.position.set(0,.08,0);
+  scene.add(h100Group);
+
+  // board
+  const board = roundedBox(U.boardSize[0], U.boardSize[1], U.boardSize[2], .16, 4, "#080b09", .28, .68, true, true);
+  h100Group.add(board);
+  const innerBoard = roundedBox(8.48, .1, 3.88, .13, 3, "#111512", .18, .76, false, true);
+  innerBoard.position.set(0,.13,0);
+  h100Group.add(innerBoard);
+
+  // mounting holes - muted dark matching original #080b09 / #1a1a1a, 8 holes SXM5
+  U.mountingHoles.forEach(([x,z])=>{
+    const g=new THREE.Group(); g.position.set(x,.22,z);
+    const cyl1 = new THREE.Mesh(new THREE.CylinderGeometry(.2,.2,.035,32), new THREE.MeshBasicMaterial({color:"#1a1a1a"}));
+    const cyl2 = new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.055,24), new THREE.MeshStandardMaterial({color:"#020302", metalness:.1, roughness:.8}));
+    cyl2.position.y=.02;
+    g.add(cyl1,cyl2);
+    h100Group.add(g);
+  });
+
+  // traces
+  [-1.65,-1.23,1.23,1.65].forEach(z=>{
+    const tr = new THREE.Mesh(new THREE.BoxGeometry(5.15,.008,.018), new THREE.MeshStandardMaterial({color:"#5a4a35", metalness:.5, roughness:.55}));
+    tr.position.set(-.03,.195,z);
+    h100Group.add(tr);
+  });
+
+  // left/right power stages
+  const mkPower = (x,z,i,col="#080a09")=>{
+    const mesh = roundedBox(.29, i%3==0?.34:.27, .36, .035, 2, col, .42, .68);
+    mesh.position.set(x,.29,z);
+    return mesh;
+  };
+  U.leftPowerStages.forEach(([x,z],i)=>{
+    const c = i%4==0?"#202421":"#080a09";
+    const m=mkPower(x,z,i,c); h100Group.add(m);
+  });
+  U.rightPowerStages.forEach(([x,z],i)=>{
+    const c = i%5==0?"#222724":"#080a09";
+    const m = roundedBox(.31, i%4==0?.36:.28, .35, .035,2,c,.42,.68); m.position.set(x,.29,z); h100Group.add(m);
+  });
+
+  // capacitors
+  [-1.38,-1.02,-.66,.68,1.04,1.4].forEach(z=>{
+    [-2.66,-2.49,2.32,2.49].forEach((x)=>{
+      const cap = roundedBox(.1,.17,.18,.02,2,"#aaa99f",.75,.3); cap.position.set(x,.24,z); h100Group.add(cap);
+    });
+  });
+
+  // clamps
+  U.topClampPositions.forEach(x=>{
+    const c1 = roundedBox(.34,.46,.42,.035,2,"#363b38",.7,.6); c1.position.set(x,.39,-1.77); h100Group.add(c1);
+    const c2 = roundedBox(.34,.46,.42,.035,2,"#363b38",.7,.6); c2.position.set(x,.39,1.77); h100Group.add(c2);
+    const top1 = new THREE.Mesh(new THREE.BoxGeometry(.35,.03,.34), new THREE.MeshStandardMaterial({color:"#777b78", metalness:.88, roughness:.24})); top1.position.set(x,.61,-1.77); h100Group.add(top1);
+    const top2 = new THREE.Mesh(new THREE.BoxGeometry(.35,.03,.34), new THREE.MeshStandardMaterial({color:"#777b78", metalness:.88, roughness:.24})); top2.position.set(x,.61,1.77); h100Group.add(top2);
+  });
+
+  // package
+  const pkg = roundedBox(U.packageSize[0], U.packageSize[1], U.packageSize[2], .11,4,"#171918",.54,.34); pkg.position.set(0,.35,0); h100Group.add(pkg);
+  const pkgInner = roundedBox(2.48,.12,2.42,.065,3,"#080a09",.5,.42); pkgInner.position.set(0,.55,0); h100Group.add(pkgInner);
+
+  // DIE tiles group - CUDA arch
+  const dieGroup = new THREE.Group(); dieGroup.position.set(0,.73,0);
+  const dieBase = roundedBox(1.52,.08,1.28,.035,2,"#171b19",.72,.24); dieGroup.add(dieBase);
+  const cols = U.dieTileColumns, rows=U.dieTileRows;
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+    const tile = new THREE.Mesh(new THREE.BoxGeometry(.078,.018,.078), new THREE.MeshStandardMaterial({color:TILE_PALETTE[Math.floor(c/cols*TILE_PALETTE.length)], metalness:.68, roughness:.26}));
+    tile.position.set((c-(cols-1)/2)*.113, .061, (r-(rows-1)/2)*.115);
+    tile.userData={partId:"cuda-architecture", col:c, row:r};
+    dieTiles.push(tile);
+    dieGroup.add(tile);
+    partMeshes.push({id:"cuda-architecture", object:tile});
+  }
+  const dieWrap = new THREE.Group(); dieWrap.name='part-cuda-architecture'; dieWrap.userData={partId:"cuda-architecture"};
+  dieWrap.add(dieGroup);
+  h100Group.add(dieWrap);
+  partMeshes.push({id:"cuda-architecture", object:dieWrap});
+
+  // HBM stacks
+  U.packageSites.forEach(site=>{
+    if(site.kind!=='memory') return;
+    const g = new THREE.Group(); g.position.set(site.position[0],.72,site.position[1]); g.name='part-gpu-ram'; g.userData={partId:'gpu-ram'};
+    const base = roundedBox(.64,.15,.5,.035,2,"#202321",.48,.38); g.add(base);
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(.48,.018,.025), new THREE.MeshStandardMaterial({color:"#6c716d", metalness:.68, roughness:.3})); bar.position.y=.085; g.add(bar);
+    // add label on B200 for HBM3e capacity
+    if(currentBoard==='b200'){
+      const canvas = document.createElement('canvas'); canvas.width=128; canvas.height=32; const ctx=canvas.getContext('2d'); ctx.fillStyle='#7fee64'; ctx.font='bold 18px monospace'; ctx.fillText('24GB', 8,22);
+      const tex=new THREE.CanvasTexture(canvas);
+      const sprMat=new THREE.SpriteMaterial({map:tex}); const spr=new THREE.Sprite(sprMat); spr.position.set(0,.16,0); spr.scale.set(.3,.07,1); g.add(spr);
+    }
+    h100Group.add(g);
+    hbmGroups.push(g);
+    partMeshes.push({id:"gpu-ram", object:g, baseMesh:base});
+  });
+
+  // structural dummy
+  U.packageSites.filter(s=>s.kind==='structural').forEach(s=>{
+    const g=new THREE.Group(); g.position.set(s.position[0],.72,s.position[1]);
+    const base=roundedBox(.64,.15,.5,.035,2,"#171b19",.48,.38); g.add(base); h100Group.add(g);
+  });
+
+  // side contacts
+  U.sideContacts.forEach(v=>{
+    const l = new THREE.Mesh(new THREE.BoxGeometry(.025,.035,.075), new THREE.MeshStandardMaterial({color:"#c7a85b", metalness:.86, roughness:.2})); l.position.set(-1.3,.64,.58*v); h100Group.add(l);
+    const r = new THREE.Mesh(new THREE.BoxGeometry(.025,.035,.075), new THREE.MeshStandardMaterial({color:"#c7a85b", metalness:.86, roughness:.2})); r.position.set(1.3,.64,.58*v); h100Group.add(r);
+  });
+
+  // daughterboard controller (visual only) - shrunk to 0.95 width, x 3.35 match original top-right PCB
+  const dBoard = roundedBox(0.95,.1,.76,.035,2,"#243b26",.24,.65); dBoard.position.set(3.35,.53,-1.43); dBoard.rotation.y=-.06; // not exactly original group, but close
+  h100Group.add(dBoard);
+
+  // Architecture illustrative group
+  archGroup = new THREE.Group(); archGroup.name='illustrative-die-architecture'; archGroup.position.set(0,.92,0);
+  const archBase = new THREE.Mesh(new THREE.BoxGeometry(1.5,.045,1.26), new THREE.MeshStandardMaterial({color:"#081209", transparent:true, opacity:.92})); archGroup.add(archBase);
+  // GPC 6 clusters
+  const gpcPositions=[[-.46,-.36],[0,-.36],[.46,-.36],[-.46,.36],[0,.36],[.46,.36]];
+  gpcPositions.forEach(([x,z])=>{
+    const g = roundedBox(.38,.085,.42,.025,2,"#254d23",.3,.7); g.position.set(x,.05,z); g.userData={partId:"gpc"}; archGroup.add(g); gpcMeshes.push(g); partMeshes.push({id:"gpc", object:g});
+  });
+  // SM placeholder
+  const sm = roundedBox(.17,.15,.19,.025,2,"#6a9862",.4,.5); sm.position.set(.48,.15,-.35); sm.userData={partId:"sm"}; archGroup.add(sm); partMeshes.push({id:"sm", object:sm});
+  // Tensor Core
+  const tc = roundedBox(.18,.18,.2,.025,2,"#8cad87",.4,.5); tc.position.set(-.46,.17,.36); tc.userData={partId:"tensor-core"}; archGroup.add(tc); partMeshes.push({id:"tensor-core", object:tc}); tcMeshes=[tc];
+  // CUDA Core 3 mini
+  const cudaGroup = new THREE.Group(); cudaGroup.position.set(0,.16,.36); cudaGroup.userData={partId:"cuda-core"};
+  [-.1,0,.1].forEach(dx=>{
+    const cc = roundedBox(.065,.16,.19,.02,2,"#5f8a58",.4,.5); cc.position.set(dx,0,0); cudaGroup.add(cc);
+  });
+  archGroup.add(cudaGroup); partMeshes.push({id:"cuda-core", object:cudaGroup});
+  // TMA
+  const tma = roundedBox(.18,.17,.2,.025,2,"#456d42",.4,.5); tma.position.set(.47,.16,.36); tma.userData={partId:"tma"}; archGroup.add(tma); partMeshes.push({id:"tma", object:tma});
+
+  h100Group.add(archGroup);
+  // wrap part ids for arch grouping
+  // set visibility
+  archGroup.visible = (state.view==='architecture');
+
+  updateMaterials();
+}
+
+function updateMaterials(){
+  const aid = activeId();
+  // die tiles
+  dieTiles.forEach(t=>{
+    const isActive = (aid==='cuda-architecture');
+    if(isActive){ t.material.color.set(GREEN); t.material.emissive = new THREE.Color(GREEN); t.material.emissiveIntensity=0.22; }
+    else {
+      const col = TILE_PALETTE[Math.floor((t.userData.col||0)/U.dieTileColumns*TILE_PALETTE.length)];
+      t.material.color.set(col);
+      t.material.emissive = new THREE.Color(0x000000);
+      t.material.emissiveIntensity=0;
+    }
+    t.material.needsUpdate=true;
+  });
+  // HBM
+  hbmGroups.forEach(g=>{
+    const base = g.children[0];
+    const on = (aid==='gpu-ram');
+    base.material.color.set(on?"#2f5c2b":"#202321");
+    if(on){ base.material.emissive=new THREE.Color(GREEN); base.material.emissiveIntensity=0.32; } else { base.material.emissive=new THREE.Color(0x000000); base.material.emissiveIntensity=0; }
+    base.material.needsUpdate=true;
+  });
+  gpcMeshes.forEach(m=>{
+    const on = (aid==='gpc'); const col = on?GREEN:"#254d23"; m.material.color.set(col);
+    m.material.emissive = new THREE.Color(GREEN); m.material.emissiveIntensity = on?0.42:0.05;
+  });
+  // others - color lerp for highlight
+  [smMesh, ...tcMeshes].forEach(o=>{ if(!o) return; });
+  // iterate partMeshes for generic highlight: we keep simple
+  partMeshes.forEach(entry=>{
+    if(['gpc','sm','tensor-core','cuda-core','tma'].includes(entry.id)){
+      const on = (aid===entry.id);
+      entry.object.traverse(child=>{
+        if(child.isMesh && child.material && child.material.color){
+          if(on){
+            if(child.material.emissive){ child.material.emissive.set(GREEN); child.material.emissiveIntensity=0.35; }
+          } else {
+            if(child.material.emissive){ child.material.emissiveIntensity=0.04; }
+          }
+        }
+      });
+    }
+  });
+}
+
+function onResize(){
+  const w=wrap.clientWidth, h=wrap.clientHeight;
+  if(!camera) return;
+  camera.aspect=w/h; camera.updateProjectionMatrix();
+  renderer.setSize(w,h);
+  // original scaling pushes camera far on portrait — clamp for usability
+  const aspect=w/h;
+  let e=Math.max(1,1.2/aspect);
+  if(aspect<1) e=Math.min(e, 1.55);
+  camera.position.set(9.2*e,6.5*e,9.6*e);
+  camera.lookAt(0,.35,0);
+}
+
+function getIntersect(e){
+  const rect = renderer.domElement.getBoundingClientRect();
+  const x = ((e.clientX - rect.left)/rect.width)*2-1;
+  const y = -((e.clientY - rect.top)/rect.height)*2+1;
+  raycaster.setFromCamera({x,y}, camera);
+  const intersects = raycaster.intersectObjects(scene.children, true);
+  for(let it of intersects){
+    let obj=it.object;
+    while(obj){
+      if(obj.userData && obj.userData.partId) return obj.userData.partId;
+      if(obj.name && obj.name.startsWith('part-')){ return obj.userData.partId || obj.name.replace('part-',''); }
+      obj=obj.parent;
+    }
+  }
+  // fallback check hbm groups via distance
+  return null;
+}
+
+function onPointerMove(e){
+  const id = getIntersect(e);
+  if(id && id!==state.hovered){ previewPart(id); updateMaterials(); }
+  else if(!id && state.hovered){ clearPreview(); updateMaterials(); }
+  // update mouse for popover projection
+  mouse.x = e.clientX; mouse.y = e.clientY;
+}
+
+function onPointerDown(e){
+  pointerDownPos={x:e.clientX,y:e.clientY};
+}
+function onClick(e){
+  // distinguish drag vs click
+  const threshold=7;
+  if(pointerDownPos){
+    const dx=e.clientX-pointerDownPos.x, dy=e.clientY-pointerDownPos.y;
+    if(Math.hypot(dx,dy)>threshold){ pointerDownPos=null; return; }
+  }
+  pointerDownPos=null;
+  const id = getIntersect(e);
+  if(id){ selectPart(id); updateMaterials(); }
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  if(controls) controls.update();
+  // auto-rotate logic already handled; update popover screen position
+  const aid = activeId();
+  if(aid){
+    const anchor = PARTS.find(p=>p.id===aid).anchor;
+    // world position compute
+    const wp = new THREE.Vector3(anchor[0], anchor[1], anchor[2]);
+    // apply h100Group transform (rotation y -0.08, pos 0,.08,0) roughly
+    const rot = new THREE.Matrix4().makeRotationY(-0.08);
+    wp.applyMatrix4(rot);
+    wp.y+=0.08; // group y
+    wp.add(new THREE.Vector3(0,0,0)); // already in world
+    // project
+    const proj = wp.clone().project(camera);
+    const sx = (proj.x*0.5+0.5)*wrap.clientWidth;
+    const sy = (-proj.y*0.5+0.5)*wrap.clientHeight;
+    // position popover near mouse if desktop? Use calculated
+    // Place to right of point, clamped
+    const pw = popover.offsetWidth||300, ph=popover.offsetHeight||180;
+    let left = sx + 18;
+    let top = sy - 40;
+    if(left+pw > wrap.clientWidth-8) left = wrap.clientWidth - pw - 12;
+    if(top+ph > wrap.clientHeight-8) top = wrap.clientHeight - ph - 12;
+    if(top<8) top=8;
+    popover.style.left = left+'px';
+    popover.style.top = top+'px';
+    // also scale/opacity based on distance factor similar to drei distanceFactor 7.5 - we approximate opacity fade when far
+    const dist = camera.position.distanceTo(wp);
+    const scale = Math.max(0.7, Math.min(1.15, 7.5/dist));
+    popover.style.transform = `scale(${scale})`;
+    popover.style.transformOrigin = 'top left';
+  }
+  if(renderer) renderer.render(scene,camera);
+}
+
+// UI events
+btnExterior.onclick=()=>{ state.view='exterior'; state.selected=null; state.hovered=null; updateUI(); };
+btnArch.onclick=()=>{ state.view='architecture'; state.selected=null; state.hovered=null; updateUI(); };
+btnReset.onclick=()=>{
+  state.resetToken++;
+  state.userInteracted=false;
+  if(controls){ controls.reset(); camera.position.set(9.2,6.5,9.6); controls.target.set(0,.35,0); controls.autoRotate=true; controls.update(); }
+  state.view='exterior'; state.selected=null; state.hovered=null; onResize(); updateUI(); updateMaterials();
+};
+btnHelp.onclick=()=>{
+  const vis = helpPanel.style.display!=='none';
+  helpPanel.style.display = vis?'none':'block';
+  btnHelp.setAttribute('aria-expanded', (!vis)+'');
+};
+document.getElementById('helpClose').onclick=()=>{ helpPanel.style.display='none'; btnHelp.setAttribute('aria-expanded','false'); };
+
+document.addEventListener('keydown', (e)=>{
+  if(e.key==='Escape'){ state.selected=null; state.hovered=null; state.userInteracted=false; helpPanel.style.display='none'; updateUI(); updateMaterials(); }
+});
+
+document.getElementById('btnH100').onclick=(e)=>{
+  currentBoard='h100'; U=U_H100; b200Tag.style.display='none';
+  document.querySelector('.stage-path').textContent='/device-hardware/h100-sxm';
+  e.target.style.background='var(--green)'; e.target.style.color='var(--ground)';
+  document.getElementById('btnB200').style.background='transparent'; document.getElementById('btnB200').style.color='var(--green-60)';
+  buildGPU(); updateUI(); updateMaterials();
+};
+document.getElementById('btnB200').onclick=(e)=>{
+  currentBoard='b200'; U=U_B200; b200Tag.style.display='inline-block';
+  document.querySelector('.stage-path').textContent='/device-hardware/b200-sxm';
+  e.target.style.background='var(--green)'; e.target.style.color='var(--ground)';
+  document.getElementById('btnH100').style.background='transparent'; document.getElementById('btnH100').style.color='var(--green-60)';
+  buildGPU(); updateUI(); updateMaterials();
+};
+
+// kick
+initThree();
+onResize();
+
+</script>
+</body>
+</html>

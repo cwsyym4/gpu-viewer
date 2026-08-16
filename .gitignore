@@ -1,0 +1,11 @@
+node_modules
+.next
+dist
+out
+*.log
+.audits
+playwright-report
+test-results
+coverage
+.env
+.env.local

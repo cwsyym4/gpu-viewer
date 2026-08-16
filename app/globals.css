@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root{--ground:#0d180a;--lime:#7fee64;--ink:#d8f9d9;--rule:rgb(127 238 100/28%)}
+*{box-sizing:border-box}
+html,body{width:100%;min-height:100%;margin:0;background:var(--ground);color:var(--lime);font-family:SFMono-Regular,Cascadia Code,Consolas,monospace}
+
+/* terminal fine grid */
+.page-frame{width:100vw;height:100svh;padding:16px;background:linear-gradient(rgb(127 238 100/2%) 1px,transparent 1px),linear-gradient(90deg,rgb(127 238 100/2%) 1px,transparent 1px),var(--ground);background-size:32px 32px}
+
+@media (max-width:839px){ .page-frame{padding:0} }
