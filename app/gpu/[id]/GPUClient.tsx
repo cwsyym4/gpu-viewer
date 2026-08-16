@@ -89,6 +89,14 @@ function SystemView({ specId, rackView, selected, dimOthers }: any){
   )
 }
 
+
+function ConditionIndicators({selected}:{selected:any}){
+  const userInteracted = useViewerStore(s=> s.userInteracted)
+  if(!userInteracted && !selected) return <div className="absolute top-2 right-2 text-[9px] font-mono text-[#7fee64]/60 border border-[#7fee64]/20 bg-black/60 px-2 py-1 rounded" data-testid="drag-indicator">DRAG TO BEGIN</div>
+  if(selected) return <div className="absolute top-12 right-2 text-[9px] font-mono text-white/60 border border-white/20 bg-black/50 px-2 py-1 rounded" data-testid="esc-indicator">ESC TO CLEAR</div>
+  return null
+}
+
 export default function GPUClient({ specId }: { specId:string }){
   const view = useViewerStore(s=> s.view)
   const rackView = useViewerStore(s=> s.rackView)
@@ -128,6 +136,7 @@ export default function GPUClient({ specId }: { specId:string }){
               ))}
             </div>
             {rackView && isSystem && <RackStats specId={specId} />}
+            <ConditionIndicators selected={selected} />
             <div className="absolute bottom-2 right-2 text-[9px] font-mono text-white/40" data-testid="stage-status">MODEL READY</div>
           </div>
           <MobileBar />

@@ -29,6 +29,9 @@ export function SceneViewport({ children, onCreated, isRack }: Props){
   const controlsRef = useRef<any>(null)
 
   useEffect(()=>{
+    try{ const c=document.createElement('canvas'); const ctx=c.getContext('webgl2') || c.getContext('webgl'); if(!ctx) setFailed(true) }catch{ setFailed(true) }
+  },[])
+  useEffect(()=>{
     if(controlsRef.current){
       controlsRef.current.target.set(0,0.3,0); controlsRef.current.update()
     }
