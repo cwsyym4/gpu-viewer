@@ -24,6 +24,8 @@ export const palette = {
   clampTop: '#777b78',
   hbmStack: '#202321',
   hbmBar: '#6c716d',
+  hbm3e: '#0ec7ff',
+  interposer: '#0e3014',
   goldContact: '#c7a85b',
   daughterboard: '#243b26',
   tilePalette: ['#9a6d2c','#a58c35','#728b3f','#3e8053','#347271','#554f7f'] as const,

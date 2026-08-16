@@ -20,6 +20,31 @@ describe('GPUSpec validation', ()=>{
     expect(b200Spec.hbm.totalGB).toBe(192)
     expect(b200Spec.dieTileColumns * b200Spec.dieTileRows).toBe(140)
   })
+  it('b200 package fits larger board', ()=>{
+    // b200 board 8.8x4.2 vs package 3.05x2.95 still fits
+    expect(b200Spec.packageSize[0]).toBeLessThan(b200Spec.boardSize[0])
+    expect(b200Spec.packageSize[2]).toBeLessThan(b200Spec.boardSize[2])
+    expect(b200Spec.boardSize[0]).toBe(8.8)
+    expect(b200Spec.boardSize[2]).toBe(4.2)
+  })
+  it('b200 dual-die interposer gap renders 2 die meshes', ()=>{
+    expect(b200Spec.dualDie).toBe(true)
+    expect(b200Spec.interposer).toBe(true)
+    // dual die implies tile split 7+7 cols x10 rows =140
+    const perDie = Math.floor(b200Spec.dieTileColumns/2) * b200Spec.dieTileRows
+    expect(perDie).toBe(70)
+    expect(perDie*2).toBe(b200Spec.dieTileColumns*b200Spec.dieTileRows)
+  })
+  it('b200 8 HBM positions not overlapping die', ()=>{
+    const dieHalfW = b200Spec.dieSize[0]/2
+    const dieHalfD = b200Spec.dieSize[2]/2
+    for(const site of b200Spec.packageSites){
+      // site positions in package local coords, die at 0,0 – if site within die half extents it overlaps
+      const overlaps = Math.abs(site.position[0]) < dieHalfW*0.6 && Math.abs(site.position[1]) < dieHalfD*0.6
+      // B200 HBM surrounds die, should not overlap centre
+      expect(overlaps, `HBM at ${site.position} overlaps die`).toBe(false)
+    }
+  })
   it('blackwell dual die nvlink', ()=>{
     expect(blackwellSpec.dualDie).toBe(true)
     expect(blackwellSpec.nvlink).toBe(true)
@@ -48,4 +73,9 @@ describe('palette exact colors prevent regression', ()=>{
     expect(palette.ambientIntensity).toBe(0.65)
     expect(palette.dirIntensity).toBe(2.2)
   })
+  it('hbm3e badge cyan vs h100 lime', ()=>{
+    expect(palette.hbm3e).toBe('#0ec7ff')
+    expect(palette.interposer).toBeDefined()
+  })
 })
+

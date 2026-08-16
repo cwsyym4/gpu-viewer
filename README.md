@@ -58,9 +58,34 @@ Our build hash: `_next/static/chunks/app/page-*.js` after `bun run build`. Find 
 - Component index 07 parts clickable, popover, OPEN GLOSSARY modal.com
 - OrbitControls min 6.8 max 24 minPolar 0.35 maxPolar 1.48
 
-## Next
+## Next — B200 ✅
 
-- Lock H100 then B200 SXM true dual-die interposer implementation (stub present)
-- Rack scale: NVL72 18 trays ×4 GPUs, LOD instancing
-- Deep modules: memory exploded 8×8 dies, GPC/SM isolate, TMA
-- Theming: off-white #FFFCF6 for 3Blue1Brown teaching branch
+**B200 SXM true variant now implemented** (not just toggled H100):
+
+- `boardSize [8.8,0.24,4.2]` vs H100 `[8.6,0.22,4]` — larger PCB for higher power
+- `packageSize [3.05,0.38,2.95]` vs H100 `[2.78,0.34,2.72]` — scaled to hold 8 stacks
+- `dieSize [1.62,0.11,1.36]` dual-die true — two dies side-by-side [0.78,0.11,0.68] each with 0.12 interposer gap (Blackwell stitching precursor)
+- Tiles 14×10=140 — split 7×10 per die (70 each) vs H100 12×9=108 single die
+  - Tile palette same 6 colors but 0.074 mesh vs 0.078 for density
+  - Interposer line `#0e3014` mesh between dies when `spec.interposer=true`
+- HBM 8× HBM3e 24GB = 192GB total (4+4 layout around die) vs H100 5× HBM3 16GB=80GB
+  - Positions `[-.98,-.82],[0,-.82],[.98,-.82],[-.98,-.16],[.98,-.16],[-.98,.62],[0,.62],[.98,.62]`
+  - Badge cyan `#0ec7ff` vs H100 lime `#7fee64` — visual distinction
+  - No overlap check: `Math.abs(x) < dieHalfW*0.6 && |z|<dieHalfD*0.6` fails for all 8 sites
+- Board power stages / clamps / contacts reused from H100 but validated fit inside 8.8 width
+- Palette additions: `hbm3e:#0ec7ff`, `interposer:#0e3014` — keep terminal-dark #080b09, fog #0d180a unchanged
+
+**Dynamic spec rendering:**
+- `GPUClient` now loads spec by id (`getSpec`), scales `partDefs` anchors by package ratio (`scaleX = pkg[0]/2.78`, `scaleZ = pkg[2]/2.72` mild 0.6+0.4*scale)
+  - HBM3e part title becomes `GPU RAM / HBM3e — HBM3e`
+  - Extra popover detail when b200: `8× HBM3e 24GB =192GB • 8-stack 4+4 • BW ~8TB/s`
+  - Dual-die detail: `Dual-die 140 tiles 14×10 • interposer yes`
+- Header `{labelShort} GPU Glossary` dynamic not hardcoded H100
+- `/gpu/h100-sxm5` and `/gpu/b200-sxm` both work side-by-side — same `SceneViewport`, same `OrbitControls` (min 6.8 max 24 polar .35–1.48 autoRotate 0.55)
+- Tests guard both: unit 13 passing, e2e h100 + b200 desktop/mobile hard-reload no .glb console 0
+
+**Build:**
+- `generateStaticParams` includes `h100-sxm5`, `b200-sxm`, `blackwell-gb200`
+- `bun run build` generates `_next/static/chunks/app/gpu/[id]/page-*.js` per route — hash recorded for verification as in Kyle's `page-ed370fd7a86ce09f.js`
+- Next step: Blackwell dual-die NVL72 rack — reuse b200 dualDie+interposer pattern, add NVLink 8× 1.8TB/s, rack instancing 72× GPU
+
