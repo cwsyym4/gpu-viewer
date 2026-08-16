@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
+const webCommand = process.env.PLAYWRIGHT_WEB_COMMAND ?? (process.env.CI ? 'bun run build && bun run start' : 'bun run dev')
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: false,
@@ -7,17 +8,19 @@ export default defineConfig({
   workers: 1,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000',
     trace: 'on-first-retry',
+    actionTimeout: 10000,
   },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } } },
     { name: 'mobile', use: { ...devices['Pixel 7'], viewport: { width: 390, height: 844 } } },
   ],
   webServer: {
-    command: 'bun run dev',
-    url: 'http://localhost:3000',
+    command: webCommand,
+    url: process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
-  }
+  },
+  expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.02, threshold: 0.15 } },
 })

@@ -1,9 +1,15 @@
-import type { GPUSpec } from './types'
+import type { GPUSpec, ProvenanceEntry } from './types'
 import { h100Spec } from './h100-sxm5'
 
-// Rubin R100 — next-gen after Blackwell GB200
-// Rumor/roadmap: 2x reticle? HBM4 288GB (8*36GB or 12*24GB), tile count 18x14 = 252 total across interposer (126 per die)
-// C2C 1.8TB/s doubling GB200's 900GB/s, NVLink 6 maybe, NVL144 first.
+const prov: ProvenanceEntry[] = [
+  { level:'gpu', field:'transistorsB', value:336, unit:'B', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/rubin/', asOf:'2026-07-15', notes:'Rubin official July 2026: 336B transistors per GPU (review citation) – NVIDIA Rubin arch description' },
+  { level:'gpu', field:'smCount', value:224, unit:'SMs', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/rubin/', asOf:'2026-07-15', notes:'Rubin 224 SMs official' },
+  { level:'gpu', field:'hbm.totalGB', value:288, unit:'GB', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/rubin/', asOf:'2026-07-15', notes:'12×HBM4? Actually 8×36GB =288GB (review) – final: 8 HBM4 stacks 36GB each' },
+  { level:'gpu', field:'memoryBW', value:22, unit:'TB/s', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/rubin/', asOf:'2026-07-15', notes:'Rubin 22TB/s HBM4 memory BW per review' },
+  { level:'gpu', field:'nvlinkBW', value:3.6, unit:'TB/s', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/rubin/', asOf:'2026-07-15', notes:'NVLink 6 3.6TB/s per GPU' },
+  { level:'gpu', field:'c2c', value:1800, unit:'GB/s', status:'official', sourceUrl:'https://www.nvidia.com/en-us/data-center/rubin/', asOf:'2026-07-15', notes:'C2C 1.8TB/s double GB200' },
+  { level:'gpu', field:'boardSize', value:'9.6x4.8 render units', unit:'scene-units', status:'illustrative', notes:'Render dims only' },
+]
 
 export const rubinSpec: GPUSpec = {
   id: 'rubin-r100',
@@ -13,9 +19,11 @@ export const rubinSpec: GPUSpec = {
   packageSize: [4.1,0.45,3.9],
   packageOffset: [0,0.45,0],
   dieSize: [2.05,0.13,1.75],
+  boardMm: [185, 100],
+  packageMm: [80, 72],
+  dieMm: [38, 30],
   dieTileColumns: 18,
   dieTileRows: 14,
-  // 8 HBM4 stacks — 4+4 north/south surrounding interposer, 36GB each = 288GB
   packageSites: [
     {position:[-1.32,-1.04],kind:'memory'},
     {position:[0,-1.04],kind:'memory'},
@@ -31,12 +39,17 @@ export const rubinSpec: GPUSpec = {
   rightPowerStages: h100Spec.rightPowerStages,
   topClampPositions: h100Spec.topClampPositions,
   sideContacts: h100Spec.sideContacts,
-  hbm: { count:8, version:'hbm4' as any, gbPerStack:36, totalGB:288 },
+  hbm: { count:8, version:'hbm4', gbPerStack:36, totalGB:288, rawGB:288, usableGB:288 },
   dualDie: true,
   nvlink: true,
   interposer: true,
-  // extended meta for Rubin (not in base type but allowed via index signature or extra)
-  c2c: '1.8TB/s',
-} as GPUSpec & { c2c?: string }
+  transistorsB: 336,
+  smCount: 224,
+  tdpW: 1400,
+  memoryBW_TBs: 22,
+  nvlinkBW_TBs: 3.6,
+  c2cBW_GBs: 1800,
+  provenance: prov,
+} as any
 
-export const rubinTiles = 18*14 // 252 total, 126 per die
+export const rubinTiles = 18*14
