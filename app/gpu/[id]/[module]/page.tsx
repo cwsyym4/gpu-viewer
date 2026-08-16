@@ -1,7 +1,11 @@
 import { getSpecSafe, specs } from '@/lib/definitions'
 import ModuleClient from './ModuleClient'
 import { notFound } from 'next/navigation'
-export const dynamic = 'force-static'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const dynamicParams = true
+
 export function generateStaticParams(){
   const mods = ['gpc','sm','tensor-core','gpu-ram','hbm','hbm-stack','mounting-hole','board']
   return Object.keys(specs).flatMap(id=> mods.map(mod=>({id, module:mod})))

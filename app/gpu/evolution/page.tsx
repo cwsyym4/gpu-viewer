@@ -31,7 +31,7 @@ export default function EvolutionPage(){
           {idx<ORDER.length-1 && <div className="mt-2"><DiffHighlight from={ORDER[idx]} to={ORDER[idx+1]} /></div>}
         </div>
         <div className="border border-[#7fee64]/20 bg-[#0d180a]/50 p-3 text-[11px] font-mono text-[#7fee64]/70">
-          <div className="text-[#d8f9d9] font-bold mb-1">{specs[cur]?.label} · {YEAR_META[cur]?.year} · {YEAR_META[cur]?.provenanceStatus} source {YEAR_META[cur]?.asOf} <a href={YEAR_META[cur]?.sourceUrl} className="underline">link</a></div>
+          <div className="text-[#d8f9d9] font-bold mb-1">{specs[cur]?.label} · {YEAR_META[cur]?.year} · {YEAR_META[cur]?.provenanceStatus} source {YEAR_META[cur]?.asOf} <a href={YEAR_META[cur]?.sourceUrl} target="_blank" rel="noreferrer" className="underline">link</a></div>
           <div>Process {YEAR_META[cur]?.process}</div>
           <ul className="list-disc ml-4 mt-1 text-[10px] space-y-1"><li>H100 80B single reticle wall</li><li>B200 dual-die workaround 140 tiles</li><li>GB200 Superchip 1G+2B 384/372GB NVL72 130TB/s</li><li>Rubin 336B 224 SMs HBM4 288GB 22TB/s NVL6 3.6TB/s C2C 1.8TB/s</li><li>Ultra 576GB vision 1PB/s class</li></ul>
           <div className="mt-2 text-[9px] text-[#7fee64]/40">Envelope numbers for Intelligence Lift teaching, explicitly labeled official/derived/estimated, with sourceUrl.</div>

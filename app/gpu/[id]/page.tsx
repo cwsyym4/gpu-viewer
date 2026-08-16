@@ -1,8 +1,11 @@
 import { getSpecSafe, specs } from '@/lib/definitions'
 import ClientWrapper from './ClientWrapper'
 import { notFound } from 'next/navigation'
-export const dynamic = 'force-static'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 export function generateStaticParams(){ return Object.keys(specs).map(id=>({id})) }
+
 export default async function GPUPage({ params }:{ params: Promise<{id:string}> }){
   const { id } = await params
   const spec = getSpecSafe(id)

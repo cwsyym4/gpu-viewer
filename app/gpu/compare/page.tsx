@@ -48,7 +48,7 @@ export default function ComparePage(){
             <div key={id} className="border border-[#7fee64]/20 bg-[#0d180a]">
               <div className="p-2 text-[12px] font-mono text-[#d8f9d9] border-b border-[#7fee64]/10">{spec.label} — {spec.module}<Link href={`/gpu/${id}`} className="float-right text-[10px] text-[#7fee64]/60 underline">open 3D →</Link></div>
               <MiniBoard spec={spec} />
-              <div className="p-2 text-[10px] font-mono text-[#7fee64]/60">Board {spec.boardSize[0]}×{spec.boardSize[2]} · Pack {spec.packageSize[0]}×{spec.packageSize[2]} · Tiles faithful {spec.dieTileColumns}×{spec.dieTileRows}={spec.dieTileColumns*spec.dieTileRows} · HBM {spec.hbm.count}×{spec.hbm.version.toUpperCase()} {spec.hbm.gbPerStack}GB={spec.hbm.totalGB}GB · {spec.dualDie?'dualDie interposer':''} · provenance {spec.provenance?.[0]?.status} {spec.provenance?.[0]?.asOf} <a href={spec.provenance?.[0]?.sourceUrl} className="underline ml-1">src</a></div>
+              <div className="p-2 text-[10px] font-mono text-[#7fee64]/60">Board {spec.boardSize[0]}×{spec.boardSize[2]} · Pack {spec.packageSize[0]}×{spec.packageSize[2]} · Tiles faithful {spec.dieTileColumns}×{spec.dieTileRows}={spec.dieTileColumns*spec.dieTileRows} · HBM {spec.hbm.count}×{spec.hbm.version.toUpperCase()} {spec.hbm.gbPerStack}GB={spec.hbm.totalGB}GB · {spec.dualDie?'dualDie interposer':''} · provenance {spec.provenance?.[0]?.status} {spec.provenance?.[0]?.asOf} <a href={spec.provenance?.[0]?.sourceUrl} target="_blank" rel="noreferrer" className="underline ml-1">src</a></div>
             </div>
           )
         })}

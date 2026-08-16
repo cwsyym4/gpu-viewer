@@ -42,13 +42,21 @@ export function SceneViewport({ children, onCreated, isRack }: Props){
     state.gl.toneMapping = THREE.ACESFilmicToneMapping
     state.gl.toneMappingExposure = isRack ? 1.85 : 1.55
     state.gl.setClearColor(palette.ground)
+    const el = state.gl?.domElement as HTMLCanvasElement | undefined
+    if(el){
+      const onLost = (e: Event)=>{ e.preventDefault(); setFailed(true) }
+      el.addEventListener('webglcontextlost', onLost as any, false)
+      return ()=> el.removeEventListener('webglcontextlost', onLost as any)
+    }
   },[onCreated, isRack])
+
+  const FiberCanvas = Canvas as any
 
   return (
     <div ref={canvasRef} className="w-full h-[420px] md:h-[520px] relative bg-[#0a0f0a]" data-testid="scene-canvas">
       {failed ? <WebGLFallback /> : (
-        <Canvas
-          frameloop={"always" as any}
+        <FiberCanvas
+          frameloop="always"
           gl={{ antialias:true, alpha:false, stencil:false, depth:true, powerPreference:'high-performance' }}
           dpr={[1,1.5]}
           camera={{ position:[6,6,6], fov:28, near:0.1, far:100 }}
@@ -70,7 +78,7 @@ export function SceneViewport({ children, onCreated, isRack }: Props){
             onStart={()=> setUserInteracted(true)}
             onChange={()=> setUserInteracted(true)}
           />
-        </Canvas>
+        </FiberCanvas>
       )}
     </div>
   )

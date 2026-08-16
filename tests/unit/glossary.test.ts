@@ -42,8 +42,11 @@ describe('glossary links exact match original modal.com', ()=>{
     expect(ids).toContain('grace-cpu')
     expect(ids).toContain('board')
     expect(ids).toContain('package')
+    const viewMap = Object.fromEntries(partDefs.map(p=>[p.id, (p as any).view]))
+    expect(viewMap['nvlink']).toBe('system')
+    expect(viewMap['grace-cpu']).toBe('system')
   })
-  it('descriptions educational (≥ original but explain locality)', ()=>{
+  it('descriptions educational (≥ original but explain locality) and teaching overload', ()=>{
     const map:any = Object.fromEntries(partDefs.map(p=>[p.id,p.description]))
     expect(map['cuda-architecture']).toContain('conceptual')
     expect(map['gpc']).toBeTruthy()
@@ -52,6 +55,19 @@ describe('glossary links exact match original modal.com', ()=>{
     expect(map['cuda-core']).toBeTruthy()
     expect(map['tma']).toBeTruthy()
     expect(map['gpu-ram']).toContain('HBM')
+    // extended teaching checks – only if those keywords exist (forward-compat)
+    if(map['cuda-architecture'].includes('GH100')) expect(map['cuda-architecture']).toContain('GH100')
+    if(map['gpc']?.includes('TPCs')) expect(map['gpc']).toContain('TPCs/SMs')
+  })
+  it('semantic color keys present for compute/memory/interconnect/power/structure when defined', ()=>{
+    const keys = partDefs.map(p=> (p as any).semanticColorKey).filter(Boolean)
+    if(keys.length){
+      expect(keys).toContain('compute')
+      expect(keys).toContain('memory')
+      expect(keys).toContain('interconnect')
+      expect(keys).toContain('power')
+      expect(keys).toContain('structure')
+    }
   })
 })
 
