@@ -161,6 +161,15 @@ function InspectorPanel({ specId, selected }: { specId: string, selected: any })
 
 function ArchitectureExploded({ specId, selected, dimOthers, workloadActiveIds }: { specId:string, selected:any, dimOthers:boolean, workloadActiveIds:string[] }){
   const spec = getSpecSafe(specId) as GPUSpec | null
+  const setSelected = useViewerStore(s=> s.setSelected)
+  const [compact, setCompact] = useState(false)
+  useEffect(()=>{
+    const query = window.matchMedia('(max-width: 767px)')
+    const update = ()=> setCompact(query.matches)
+    update()
+    query.addEventListener?.('change', update)
+    return ()=> query.removeEventListener?.('change', update)
+  },[])
   if(!spec) return null
   const gpcCount = spec.gpcCount ?? 8
   const smCounts = spec.smCountsPerGpc ?? Array.from({length:gpcCount},()=> spec.smPerGpc ?? 18)
@@ -168,7 +177,7 @@ function ArchitectureExploded({ specId, selected, dimOthers, workloadActiveIds }
   // Correct non-misleading summary – task requires this exact phrasing
   const archSummary = `${gpcCount} GPCs; ${totalSm} enabled SMs; per-GPC distribution illustrative`
 
-  // Fixed scale 1.2, centered at origin, no boardSize driver (previously tiny/off-center)
+  // Fixed scale 1.2, centered at origin, no boardSize driver
   const ARCH_SCALE = 1.2
   const showSmDetail = selected && (
     selected==='sm' ||
@@ -180,7 +189,7 @@ function ArchitectureExploded({ specId, selected, dimOthers, workloadActiveIds }
 
   return (
     <group userData={{ testId: 'architecture-exploded' }} scale={[ARCH_SCALE,ARCH_SCALE,ARCH_SCALE]} position={[0,0.15,0] as any}>
-      {/* Single concise summary at top, centered, pointerEvents none */}
+      {/* Single concise summary at top, centered, pointerEvents none – exact phrasing required */}
       <group userData={{ testId: 'arch-summary' }} position={[0,2.4,0] as any}>
         <Html center position={[0,0,0]} style={{pointerEvents:'none'}} zIndexRange={[10,0]}>
           <div className="text-[12px] font-mono text-white/85 bg-black/80 px-3 py-1.5 rounded border border-[#7fee64]/30 backdrop-blur-sm whitespace-nowrap max-md:text-[11px] max-md:whitespace-normal max-md:max-w-[320px] max-md:text-center">
@@ -193,15 +202,22 @@ function ArchitectureExploded({ specId, selected, dimOthers, workloadActiveIds }
       {Array.from({length:gpcCount}).map((_,gpcIdx)=>{
         const smInGpc = smCounts[gpcIdx] ?? spec.smPerGpc ?? 18
         const isGpcActive = selected==='gpc' || selected===`gpc-${gpcIdx}` || (typeof selected==='string' && selected===`gpc-${gpcIdx}`) || workloadActiveIds.includes('gpc')
-        // Centered 4x2 grid, no gpcIdx*0.08 stacking that pushed off-center
-        const x = ((gpcIdx%4)-1.5)*1.85
-        const z = (Math.floor(gpcIdx/4)-0.5)*1.7
+        const columns = compact ? 2 : 4
+        const x = ((gpcIdx%columns)-(columns-1)/2)*1.85
+        const z = (Math.floor(gpcIdx/columns)-(compact?1.5:0.5))*(compact?1.25:1.7)
         return (
-          <group key={gpcIdx} position={[x, 0, z] as any} userData={{ testId: `gpc-${gpcIdx}` }}>
+          <group
+            key={gpcIdx}
+            position={[x, 0, z] as any}
+            userData={{ testId: `gpc-${gpcIdx}` }}
+            onClick={(event:any)=>{ event.stopPropagation(); setSelected(`gpc-${gpcIdx}`) }}
+            onPointerOver={(event:any)=>{ event.stopPropagation(); document.body.style.cursor='pointer' }}
+            onPointerOut={()=>{ document.body.style.cursor='default' }}
+          >
             <RoundedBox args={[1.42,0.22,0.96] as any} radius={0.06} userData={{ testId: `gpc-box-${gpcIdx}` }}>
               <meshStandardMaterial color={palette.gpc} emissive={isGpcActive?palette.compute:"black"} emissiveIntensity={isGpcActive?0.65:0} transparent={dimOthers} opacity={dimOthers && !workloadActiveIds.includes('gpc') && selected!=='gpc' && selected!==`gpc-${gpcIdx}`?0.28:0.96} />
             </RoundedBox>
-            {/* GPC label only – no per-SM dozens */}
+            {/* GPC label only – distanceFactor 6 per spec */}
             <group userData={{ testId: `gpc-label-${gpcIdx}` }} position={[0,0.26,0] as any}>
               <Html center position={[0,0,0]} style={{pointerEvents:'none'}} distanceFactor={6} occlude={false}>
                 <div className="text-[11px] font-mono text-white/80 bg-black/60 px-1.5 py-0.5 rounded whitespace-nowrap border border-white/10">
@@ -354,9 +370,15 @@ export default function GPUClient({ specId }: { specId:string }){
               <button type="button" disabled title="Rack only for GB200 NVL72 / Vera Rubin NVL72 official" className="ml-auto text-[12px] px-2 py-1 border rounded border-white/10 text-white/20 cursor-not-allowed">Rack N/A</button>
             )}
             <button type="button" data-testid="reset-view" onClick={()=> useViewerStore.getState().reset()} className="text-[12px] px-2 py-1 border border-[#7fee64]/20 rounded text-white/60 hover:text-white">Reset view</button>
+            {isArch && (
+              <div data-testid="arch-summary" className="basis-full text-[11px] md:text-[12px] font-mono text-white/65 leading-tight pb-0.5">
+                {spec.gpcCount ?? 8} GPCs · {spec.smCount ?? '—'} enabled SMs · per-GPC distribution illustrative · conceptual count-based layout
+                {spec.id==='h100-sxm5' ? ' · full GH100 144 / H100 SXM5 132 active' : ''}
+              </div>
+            )}
           </div>
           <div className="flex-1 relative">
-            <SceneViewport isRack={rackView && isSystem && canRack}>
+            <SceneViewport isRack={rackView && isSystem && canRack} fallbackLabel={spec.label.toUpperCase()}>
               {!isArch && !isSystem && <BoardGroup specId={specId} selected={selected} dimOthers={dimOthers} workloadActiveIds={workloadActiveIds} view={view} />}
               {isArch && <ArchitectureExploded specId={specId} selected={selected} dimOthers={dimOthers} workloadActiveIds={workloadActiveIds} />}
               {isSystem && <SystemView specId={specId} rackView={rackView} selected={selected} dimOthers={dimOthers} workloadActiveIds={workloadActiveIds} />}

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { expectSceneObject, sceneObjectScreenPoint } from './scene'
 // no-GLB request tracking BEFORE goto per feedback
 test.describe('H100 – view modes actually change geometry, interactions', ()=>{
   test.beforeEach(async ({ page })=>{
@@ -21,22 +22,29 @@ test.describe('H100 – view modes actually change geometry, interactions', ()=>
 
     // view-exterior present
     await expect(page.getByTestId('view-exterior')).toBeVisible()
-    // exterior-group rendered
-    await expect(page.getByTestId('exterior-group')).toBeVisible()
+    await expectSceneObject(page, 'exterior-group')
 
     // switch to architecture changes geometry
     await page.getByTestId('view-architecture').click()
-    await expect(page.getByTestId('architecture-exploded')).toBeVisible({ timeout:4000 })
-    // gpc-0 exists
-    await expect(page.getByTestId('gpc-0')).toBeVisible()
+    await expectSceneObject(page, 'architecture-exploded')
+    await expectSceneObject(page, 'gpc-0')
+    const gpc0 = await sceneObjectScreenPoint(page, 'gpc-0')
+    await page.mouse.click(gpc0.x, gpc0.y)
+    await expect(page.getByTestId('arch-inspector')).toContainText('GPC 0')
 
     // switch to system
     await page.getByTestId('view-system').click()
-    await expect(page.getByTestId('system-view')).toBeVisible({ timeout:4000 })
+    await expectSceneObject(page, 'system-view')
 
     // drag sets userInteracted cannot directly test but verify drag not crashing
     const canvas = page.locator('canvas').first()
-    await canvas.dragTo(canvas, { sourcePosition:{x:100,y:100}, targetPosition:{x:150,y:100} })
+    const canvasBox = await canvas.boundingBox()
+    expect(canvasBox).not.toBeNull()
+    const start = { x:canvasBox!.x+canvasBox!.width*0.7, y:canvasBox!.y+canvasBox!.height*0.6 }
+    await page.mouse.move(start.x, start.y)
+    await page.mouse.down()
+    await page.mouse.move(start.x+50, start.y, { steps:5 })
+    await page.mouse.up()
 
     // ESC clears selection
     await page.keyboard.press('Escape')

@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 export type ViewMode = 'exterior' | 'architecture' | 'system'
-export type GPUPartId = 'cuda-architecture'|'gpu-ram'|'gpc'|'sm'|'tensor-core'|'cuda-core'|'tma'|'nvlink'|'grace-cpu'|'board'|'package'|'power'|'interconnect'|'structure'|null
+export type GPUPartId = 'cuda-architecture'|'gpu-ram'|'gpc'|`gpc-${number}`|'sm'|`sm-${number}-${number}`|'tensor-core'|'cuda-core'|'tma'|'nvlink'|'grace-cpu'|'board'|'package'|'power'|'interconnect'|'structure'|null
 export type WorkloadKind = 'dense-training' | 'moe-training' | 'moe-inference' | 'long-context' | 'recsys' | 'memory-bound' | 'comm-bound' | null
 type Store = {
   view: ViewMode; rackView: boolean; viewMode: 'module'|'rack'; hovered: GPUPartId; selected: GPUPartId;

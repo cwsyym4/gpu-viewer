@@ -1,59 +1,6 @@
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
-
-// Fail on ANY client error – not just ReactCurrentOwner – per mandatory CI gate
-async function collectPageErrors(page: any) {
-  const errors: string[] = []
-  page.on('pageerror', (e: any) => errors.push(`pageerror: ${e?.message ?? String(e)}`))
-  page.on('console', (m: any) => {
-    if (m.type() === 'error') errors.push(`console.error: ${m.text()}`)
-  })
-  return errors
-}
-
-// Traverse actual Three.js scene exposed via window.__R3F_SCENE__ (SceneViewport sets window.__R3F_SCENE__ = scene)
-async function expectSceneObject(page: any, testId: string, timeout = 12000): Promise<boolean> {
-  const start = Date.now()
-  while (Date.now() - start < timeout) {
-    const found = await page.evaluate((tid: string) => {
-      const w: any = window as any
-      const scene = w.__R3F_SCENE__ || w.__R3F_SCENE
-      if (scene) {
-        try {
-          let hit = false
-          scene.traverse((o: any) => {
-            if (o?.userData?.testId === tid) hit = true
-          })
-          if (hit) return true
-          // also check via getObjectByProperty if available
-          // @ts-ignore
-          if (scene.getObjectByProperty) {
-            const byProp = scene.getObjectByProperty('userData', undefined)
-            // fallback manual already done
-          }
-        } catch {}
-      }
-      // Fallback: check sr-only DOM mirrors for view level objects
-      const sr = document.querySelector(`[data-testid="${tid}-sr"]`)
-      if (sr) return true
-      // For view-level: if tid contains view name and scene-state says view matches, trust after canvas exists
-      const stateEl = document.querySelector('[data-testid="scene-state"]')
-      if (stateEl) {
-        try {
-          const j = JSON.parse(stateEl.textContent || '{}')
-          if (tid.includes('exterior') && j.view === 'exterior') return true
-          if (tid.includes('architecture') && j.view === 'architecture') return true
-          if (tid.includes('system') && j.view === 'system') return true
-          if (tid === 'rack-nvl72' && j.rackView && j.view === 'system') return true
-        } catch {}
-      }
-      return false
-    }, testId).catch(() => false)
-    if (found) return true
-    await page.waitForTimeout(250)
-  }
-  return false
-}
+import { collectPageErrors, expectSceneObject, expectSceneObjectInFrame } from './scene'
 
 // Desktop tests – skip on mobile project
 test.describe('Desktop Visual baselines – honest screenshots', () => {
@@ -64,31 +11,10 @@ test.describe('Desktop Visual baselines – honest screenshots', () => {
     await expect(page.getByTestId('stage-status')).toBeVisible({ timeout: 15000 })
     await expect(page.getByTestId('scene-canvas')).toBeVisible()
 
-    const nonBlank = await page.evaluate(() => {
-      const c = document.querySelector('canvas') as HTMLCanvasElement
-      if (!c) return false
-      try {
-        // Try WebGL2 readPixels centered
-        const gl = (c.getContext('webgl2') || c.getContext('webgl')) as WebGLRenderingContext | WebGL2RenderingContext | null
-        if (!gl) return false
-        const w = (c as any).width || c.clientWidth || 1280
-        const h = (c as any).height || c.clientHeight || 800
-        const x = Math.floor(w / 2)
-        const y = Math.floor(h / 2)
-        const pixels = new Uint8Array(4)
-        try {
-          // @ts-ignore
-          gl.readPixels(x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels)
-          const sum = pixels[0] + pixels[1] + pixels[2]
-          // alpha >0 and not pure black, not pure clear (#0a0f0a approx 10,15,10)
-          return sum > 30 && pixels[3] > 0
-        } catch {
-          // preserveDrawingBuffer false -> readPixels may fail, fallback check canvas not blank via toDataURL size
-          return true
-        }
-      } catch { return false }
-    })
-    expect(nonBlank, 'canvas center pixel should be non-blank').toBeTruthy()
+    await expectSceneObject(page, 'board-mesh')
+    const canvasBox = await page.locator('canvas').boundingBox()
+    expect(canvasBox?.width).toBeGreaterThan(300)
+    expect(canvasBox?.height).toBeGreaterThan(300)
 
     const hasState = await page.locator('[data-testid="scene-state"]').textContent()
     expect(hasState).toContain('"view"')
@@ -103,8 +29,7 @@ test.describe('Desktop Visual baselines – honest screenshots', () => {
     await page.goto('/gpu/h100-sxm5?view=architecture')
     await expect(page.getByTestId('stage-status')).toBeVisible({ timeout: 15000 })
     await page.waitForTimeout(1000)
-    const ok = await expectSceneObject(page, 'architecture-exploded', 12000)
-    expect(ok, 'architecture-exploded should be found in __R3F_SCENE__').toBeTruthy()
+    await expectSceneObject(page, 'architecture-exploded', 12000)
 
     const gpcOk = await page.evaluate(() => {
       const el = document.querySelector('[data-testid="scene-state"]')
@@ -131,8 +56,9 @@ test.describe('Desktop Visual baselines – honest screenshots', () => {
       await rackBtn.click()
       await page.waitForTimeout(700)
     }
-    const rackOk = await expectSceneObject(page, 'rack-nvl72', 12000)
-    expect(rackOk, 'rack-nvl72 should be present after toggle').toBeTruthy()
+    await expectSceneObject(page, 'rack-nvl72', 12000)
+    await expectSceneObjectInFrame(page, 'power-shelf-7')
+    await expectSceneObjectInFrame(page, 'tor-switch-1')
     const stageTxt = await page.getByTestId('stage-status').textContent()
     expect(stageTxt).toBeTruthy()
     await expect(page.getByTestId('scene-canvas')).toHaveScreenshot('desktop-rack-gb200.png', { maxDiffPixels: 900, threshold: 0.25 })
@@ -186,7 +112,7 @@ test.describe('Desktop Visual baselines – honest screenshots', () => {
     expect(workloadIds).toBeTruthy()
 
     // Verify scene still has B200 topology after workload change – HBM stacks etc still present via userData
-    const stillHasBoard = await expectSceneObject(page, 'exterior-group', 5000)
+    await expectSceneObject(page, 'exterior-group', 5000)
     // exterior may be hidden after workload? but at least scene-state still says module
     expect(errors).toEqual([])
     await expect(page.getByTestId('scene-canvas')).toHaveScreenshot('desktop-workload-b200-dense.png', { maxDiffPixels: 900, threshold: 0.25 })
@@ -215,11 +141,12 @@ test.describe('Mobile Visual – 390', () => {
     await expect(page.getByTestId('scene-canvas')).toHaveScreenshot('mobile-390-exterior-h100.png', { maxDiffPixelRatio: 0.03 })
   })
 
-  test('mobile 390 architecture – usable single column', async ({ page }, testInfo) => {
+  test('mobile 390 architecture – all GPCs remain framed', async ({ page }, testInfo) => {
     if (testInfo.project.name !== 'mobile') test.skip(true, 'mobile only')
     await page.goto('/gpu/h100-sxm5?view=architecture')
     await expect(page.getByTestId('stage-status')).toBeVisible({ timeout: 15000 })
     await page.waitForTimeout(800)
+    for(const id of ['gpc-0','gpc-3','gpc-4','gpc-7']) await expectSceneObjectInFrame(page, id)
     await expect(page.getByTestId('scene-canvas')).toHaveScreenshot('mobile-390-arch-h100.png', { maxDiffPixelRatio: 0.03 })
   })
 
@@ -227,8 +154,12 @@ test.describe('Mobile Visual – 390', () => {
     if (testInfo.project.name !== 'mobile') test.skip(true, 'mobile only')
     await page.goto('/gpu/blackwell-gb200?view=system')
     await expect(page.getByTestId('stage-status')).toBeVisible({ timeout: 15000 })
+    await page.getByTestId('toggle-rack').click()
+    await expectSceneObject(page, 'rack-nvl72')
+    await expectSceneObjectInFrame(page, 'power-shelf-7', 0.03)
+    await expectSceneObjectInFrame(page, 'tor-switch-1', 0.03)
     await page.waitForTimeout(800)
-    await expect(page.getByTestId('scene-canvas')).toHaveScreenshot('mobile-390-system-gb200.png', { maxDiffPixelRatio: 0.04 })
+    await expect(page.getByTestId('scene-canvas')).toHaveScreenshot('mobile-390-rack-gb200.png', { maxDiffPixelRatio: 0.04 })
   })
 })
 
@@ -239,7 +170,7 @@ test.describe('a11y + WebGL fallback', () => {
     await page.goto('/gpu/h100-sxm5')
     await expect(page.getByTestId('stage-status')).toBeVisible({ timeout: 15000 })
     // AxeBuilder scan – should have no violations for landmark/h1 rules after layout fix
-    const accessibilityScanResults = await new AxeBuilder({ page })
+    const accessibilityScanResults = await new AxeBuilder({ page: page as any })
       .include('main')
       .analyze()
     // Filter moderate and higher – we assert no violations that are landmark/h1 related

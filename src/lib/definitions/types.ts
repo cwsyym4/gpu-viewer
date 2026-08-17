@@ -40,7 +40,7 @@ export interface SuperchipSpec {
 }
 export interface ComputeTraySpec { id: string; label: string; level: 'tray'; superchipIds: string[]; trayCountInRack: number; gpusPerTray: number; cpusPerTray: number; provenance: ProvenanceEntry[] }
 export interface RackSpec { id: string; label: string; level: 'rack'; traySpecId: string; trayCount: number; totalGPUs: number; totalCPUs: number; nvlinkDomain_TBs: number; nvlinkVersion: string; c2cPerSuperchip_GBs: number; provenance: ProvenanceEntry[]; workloadImplications?: string; speculative?: boolean }
-export type GPUPartId = 'cuda-architecture'|'gpu-ram'|'gpc'|'sm'|'tensor-core'|'cuda-core'|'tma'|'nvlink'|'grace-cpu'|'board'|'package'|'power'|'interconnect'|'structure'
+export type GPUPartId = 'cuda-architecture'|'gpu-ram'|'gpc'|`gpc-${number}`|'sm'|`sm-${number}-${number}`|'tensor-core'|'cuda-core'|'tma'|'nvlink'|'grace-cpu'|'board'|'package'|'power'|'interconnect'|'structure'
 export interface PartDef { id: GPUPartId; index: string; title: string; abbreviation?: string; description: string; glossaryUrl: string; view: 'exterior'|'architecture'|'system'; anchor: Vec3; onlyFor?: string[]; semanticColorKey?: 'compute'|'memory'|'interconnect'|'power'|'structure'|'interaction' }
 export function validateSpec(spec: GPUSpec): string[] {
   const errs:string[]=[]
