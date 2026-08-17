@@ -3,7 +3,7 @@ export type Vec2 = [number, number]
 export type HBMKind = 'memory' | 'structural'
 export interface PackageSite { position: Vec2; kind: HBMKind }
 export type ProvenanceLevel = 'gpu' | 'superchip' | 'tray' | 'rack' | 'die'
-export type ProvenanceStatus = 'official' | 'derived' | 'estimated' | 'illustrative' | 'speculative'
+export type ProvenanceStatus = 'official' | 'official preliminary' | 'derived' | 'estimated' | 'illustrative' | 'speculative'
 export interface ProvenanceEntry {
   level: ProvenanceLevel
   field: string

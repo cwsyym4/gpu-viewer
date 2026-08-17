@@ -17,7 +17,8 @@ export const b200Spec: GPUSpec = {
   packageSites:[{position:[-.98,-.82],kind:'memory'},{position:[0,-.82],kind:'memory'},{position:[.98,-.82],kind:'memory'},{position:[-.98,-.16],kind:'memory'},{position:[.98,-.16],kind:'memory'},{position:[-.98,.62],kind:'memory'},{position:[0,.62],kind:'memory'},{position:[.98,.62],kind:'memory'}],
   mountingHoles: h100Spec.mountingHoles, leftPowerStages: h100Spec.leftPowerStages, rightPowerStages: h100Spec.rightPowerStages, topClampPositions: h100Spec.topClampPositions, sideContacts: h100Spec.sideContacts,
   hbm:{count:8, version:'hbm3e', gbPerStack:24, totalGB:192, rawGB:192, usableGB:180}, dualDie:true, interposer:true,
-  transistorsB:208, smCount:148, // official 148 SMs active per current guide vs 192 theoretical max – corrected per reviewer tdpW:1000, memoryBW_TBs:8, nvlinkBW_TBs:1.8,
+  transistorsB:208, smCount:148, // official 148 SMs active per current guide vs 192 theoretical max – corrected per reviewer
+  tdpW:1000, memoryBW_TBs:8, nvlinkBW_TBs:1.8,
   // c2cBW removed – belongs to superchip CPU↔GPU relationship, not standalone GPU
   provenance:prov,
 }

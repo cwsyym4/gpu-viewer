@@ -37,7 +37,7 @@ export function ComponentIndex(){
   })
 
   return (
-    <section aria-label="Component Index" data-testid="component-index" className={`${drawerOpen ? 'w-[230px]' : 'w-[56px]'} shrink-0 border-r border-[#7fee64]/15 bg-[#080b09] transition-all`} style={{ minHeight:'420px' }}>
+    <section aria-label="Component Index" data-testid="component-index" className={`hidden md:flex ${drawerOpen ? 'w-[230px]' : 'w-[56px]'} shrink-0 border-r border-[#7fee64]/15 bg-[#080b09] transition-all flex-col`} style={{ minHeight:'420px' }}>
       <div className="flex items-center justify-between px-2 py-1 border-b border-[#7fee64]/10">
         <span className={`text-[12px] font-mono text-[#7fee64] ${!drawerOpen ? 'hidden' : ''}`}>GPU MAP · {filtered.length} PARTS</span>
         <button type="button" data-testid="toggle-drawer" onClick={()=> setDrawerOpen(!drawerOpen)} className="text-[12px] px-1 py-0.5 border border-[#7fee64]/20 rounded text-[#7fee64]/70">{drawerOpen ? '◀' : '▶'}</button>

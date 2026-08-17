@@ -1,5 +1,5 @@
 'use client'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { SceneViewport } from '@/components/scene/SceneViewport'
 import { getSpecSafe, partDefs, workloadOverlays, superchips, racks } from '@/lib/definitions'
@@ -27,12 +27,10 @@ function BoardGroup({ specId, selected, dimOthers, workloadActiveIds, view }: { 
   const spec = getSpecSafe(specId) as GPUSpec | null
   if(!spec) return null
   const scale = 3.9 / (spec.boardSize[0])
-  const isMemoryActive = (p:string)=> selected==='gpu-ram' || selected==='board' || selected==='package' ? false : workloadActiveIds.includes('gpu-ram')
   const illuminated = (ids:string[])=> ids.some(id=> workloadActiveIds.includes(id)) || (selected && ids.includes(selected))
 
   return (
     <group scale={[scale,scale,scale]} userData={{ testId: 'exterior-group' }}>
-      {/* Board base */}
       <RoundedBox args={spec.boardSize as any} radius={0.08} userData={{ testId: 'board-mesh' }}>
         <meshStandardMaterial color={palette.board} emissive="#2a4a30" emissiveIntensity={illuminated(['board','structure'])?0.78:0.25} />
       </RoundedBox>
@@ -40,7 +38,6 @@ function BoardGroup({ specId, selected, dimOthers, workloadActiveIds, view }: { 
         <meshStandardMaterial color={palette.boardInner} metalness={0.18} roughness={0.76} />
       </RoundedBox>
 
-      {/* Power delivery / VRM restored */}
       <group userData={{ testId: 'power-stages-left' }}>
         {spec.leftPowerStages.map((pos,i)=>(
           <group key={`l-${i}`} position={[pos[0],0.18,pos[1]] as any} userData={{ testId: `power-l-${i}` }}>
@@ -57,12 +54,10 @@ function BoardGroup({ specId, selected, dimOthers, workloadActiveIds, view }: { 
         ))}
       </group>
 
-      {/* Mounting holes restored */}
       <group userData={{ testId: 'mounting-holes-group' }}>
         <MountingHoles positions={spec.mountingHoles as any} />
       </group>
 
-      {/* Side gold contacts */}
       <group userData={{ testId: 'side-contacts' }}>
         {spec.sideContacts.map((z,i)=>(
           <group key={i} position={[0,0,0] as any} userData={{ testId: `contact-${i}` }}>
@@ -74,7 +69,6 @@ function BoardGroup({ specId, selected, dimOthers, workloadActiveIds, view }: { 
         ))}
       </group>
 
-      {/* Top clamps */}
       <group userData={{ testId: 'top-clamps' }}>
         {spec.topClampPositions.map((x,i)=>(
           <group key={i} position={[x,0.24,0] as any} userData={{ testId: `clamp-${i}` }}>
@@ -84,12 +78,10 @@ function BoardGroup({ specId, selected, dimOthers, workloadActiveIds, view }: { 
         ))}
       </group>
 
-      {/* Package */}
       <group position={spec.packageOffset as any} userData={{ testId: 'package-group' }}>
         <RoundedBox args={spec.packageSize as any} radius={0.05} userData={{ testId: 'package-mesh' }}>
           <meshStandardMaterial color={palette.package} emissive="#1d2a1e" emissiveIntensity={illuminated(['package','structure'])?0.55:0.15} />
         </RoundedBox>
-        {/* Die tiles driven by spec */}
         <DieTileGrid
           columns={spec.dieTileColumns}
           rows={spec.dieTileRows}
@@ -104,10 +96,8 @@ function BoardGroup({ specId, selected, dimOthers, workloadActiveIds, view }: { 
         />
       </group>
 
-      {/* HBM stacks with traces */}
       {spec.packageSites.filter((s:any)=>s.kind==='memory').map((site:any,i:number)=>(
         <group key={i} position={[(site.position[0])*2.2,0.28,(site.position[1])*1.6] as any} userData={{ testId: `hbm-site-${i}` }}>
-          {/* trace line */}
           <group position={[(site.position[0])*0.2, -0.06, (site.position[1])*0.1] as any} userData={{ testId: `hbm-trace-${i}` }}>
             <mesh userData={{ testId: `trace-mesh-${i}` }}>
               <boxGeometry args={[0.28,0.01,0.02]} />
@@ -129,68 +119,130 @@ function BoardGroup({ specId, selected, dimOthers, workloadActiveIds, view }: { 
   )
 }
 
+function InspectorPanel({ specId, selected }: { specId: string, selected: any }){
+  const spec = getSpecSafe(specId) as any
+  if(!selected) return null
+  const isGpcSel = typeof selected === 'string' && selected.startsWith('gpc')
+  const gpcIdx = isGpcSel ? parseInt(selected.replace('gpc-','').replace('gpc','')) : NaN
+  const hasGpcIdx = !isNaN(gpcIdx)
+  const isSm = selected==='sm' || (typeof selected==='string' && selected.startsWith('sm-')) || selected==='tensor-core' || selected==='cuda-core' || selected==='tma'
+  let title = selected
+  let body: string[] = []
+  if(hasGpcIdx && spec?.smCountsPerGpc){
+    const smIn = spec.smCountsPerGpc[gpcIdx] ?? spec.smPerGpc
+    title = `GPC ${gpcIdx}`
+    body = [`${smIn} SMs (visual shows up to 6)`, `Part of ${spec.gpcCount} GPCs`, `Total ${spec.smCount} enabled SMs`]
+    if(spec.id==='h100-sxm5') body.push('132 active / 144 full GH100, per-GPC dist illustrative')
+  } else if(selected==='gpc'){
+    title = `${spec?.gpcCount ?? 8} GPCs`
+    body = [`${spec?.smCount} enabled SMs; per-GPC distribution illustrative`, 'Click GPC to inspect']
+  } else if(isSm){
+    const smIdxInfo = typeof selected==='string' && selected.includes('-') ? selected : null
+    title = smIdxInfo ? `SM ${smIdxInfo}` : 'Streaming Multiprocessor'
+    body = ['Warp scheduler, 32 threads', 'Tensor Core + CUDA Core + TMA', spec?.id==='h100-sxm5' ? 'Hopper SM: 4th gen Tensor' : 'SM class']
+  } else if(selected==='tensor-core'){
+    title='Tensor Core'; body=['Matrix multiply-accumulate','FP8/FP16/BF16']
+  } else if(selected==='cuda-core'){
+    title='CUDA Core'; body=['FP32/FP64 general','SIMT']
+  } else if(selected==='tma'){
+    title='Tensor Memory Accelerator'; body=['Async bulk copy','GMEM→SMEM']
+  } else {
+    title = String(selected); body = ['Selected component']
+  }
+  return (
+    <div className="absolute bottom-2 right-2 max-w-[220px] text-[11px] font-mono bg-black/75 border border-[#7fee64]/25 rounded px-2 py-2 backdrop-blur-sm pointer-events-none max-md:max-w-[160px] max-md:text-[10px]" data-testid="arch-inspector">
+      <div className="text-[#d8f9d9] font-bold mb-1">{title}</div>
+      <div className="text-white/60 leading-[1.3] space-y-0.5">
+        {body.map((b,i)=><div key={i}>{b}</div>)}
+      </div>
+    </div>
+  )
+}
+
 function ArchitectureExploded({ specId, selected, dimOthers, workloadActiveIds }: { specId:string, selected:any, dimOthers:boolean, workloadActiveIds:string[] }){
   const spec = getSpecSafe(specId) as GPUSpec | null
   if(!spec) return null
-  const scale = 3.9 / (spec.boardSize[0])
   const gpcCount = spec.gpcCount ?? 8
   const smCounts = spec.smCountsPerGpc ?? Array.from({length:gpcCount},()=> spec.smPerGpc ?? 18)
-  // compute total to validate vs smCount
-  const totalSm = smCounts.reduce((a,b)=>a+b,0)
-  const label = `${gpcCount} GPCs × ${spec.smPerGpc ?? Math.round(totalSm/gpcCount)} SM avg = ${spec.smCount ?? totalSm} SMs (${spec.id==='h100-sxm5'?'132 active / 144 full GH100':''})`
+  const totalSm = spec.smCount ?? smCounts.reduce((a,b)=>a+b,0)
+  // Correct non-misleading summary – task requires this exact phrasing
+  const archSummary = `${gpcCount} GPCs; ${totalSm} enabled SMs; per-GPC distribution illustrative`
+
+  // Fixed scale 1.2, centered at origin, no boardSize driver (previously tiny/off-center)
+  const ARCH_SCALE = 1.2
+  const showSmDetail = selected && (
+    selected==='sm' ||
+    selected==='tensor-core' ||
+    selected==='cuda-core' ||
+    selected==='tma' ||
+    (typeof selected==='string' && (selected.startsWith('sm-') || selected.startsWith('gpc-')))
+  )
 
   return (
-    <group userData={{ testId: 'architecture-exploded' }} scale={[scale,scale,scale]}>
-      <group userData={{ testId: 'arch-label' }} position={[0,2.2,0] as any}>
-        <Html center position={[0,0,0]} style={{pointerEvents:'none'}}>
-          <div className="text-[12px] font-mono text-white/70 bg-black/70 px-2 py-1 rounded border border-[#7fee64]/20">{label} – Conceptual count-based layout — not a physical die floorplan</div>
+    <group userData={{ testId: 'architecture-exploded' }} scale={[ARCH_SCALE,ARCH_SCALE,ARCH_SCALE]} position={[0,0.15,0] as any}>
+      {/* Single concise summary at top, centered, pointerEvents none */}
+      <group userData={{ testId: 'arch-summary' }} position={[0,2.4,0] as any}>
+        <Html center position={[0,0,0]} style={{pointerEvents:'none'}} zIndexRange={[10,0]}>
+          <div className="text-[12px] font-mono text-white/85 bg-black/80 px-3 py-1.5 rounded border border-[#7fee64]/30 backdrop-blur-sm whitespace-nowrap max-md:text-[11px] max-md:whitespace-normal max-md:max-w-[320px] max-md:text-center">
+            {archSummary}
+            {spec.id==='h100-sxm5' ? ' — GH100 full 144, H100 SXM5 132 active' : ''}
+            <span className="text-white/50 ml-2">Conceptual count-based – not physical floorplan</span>
+          </div>
         </Html>
       </group>
       {Array.from({length:gpcCount}).map((_,gpcIdx)=>{
         const smInGpc = smCounts[gpcIdx] ?? spec.smPerGpc ?? 18
-        // we will display up to 6 visual SM boxes per GPC to keep scene legible, but label true count
-        const visualSm = Math.min(smInGpc, 6)
-        const active = selected==='gpc' || selected==='sm' || workloadActiveIds.includes('gpc')
-        const x = ((gpcIdx%4)-1.5)*1.8
-        const z = (Math.floor(gpcIdx/4)-0.5)*1.6
+        const isGpcActive = selected==='gpc' || selected===`gpc-${gpcIdx}` || (typeof selected==='string' && selected===`gpc-${gpcIdx}`) || workloadActiveIds.includes('gpc')
+        // Centered 4x2 grid, no gpcIdx*0.08 stacking that pushed off-center
+        const x = ((gpcIdx%4)-1.5)*1.85
+        const z = (Math.floor(gpcIdx/4)-0.5)*1.7
         return (
-          <group key={gpcIdx} position={[x, gpcIdx*0.08, z] as any} userData={{ testId: `gpc-${gpcIdx}` }}>
-            <RoundedBox args={[1.35,0.2,0.9] as any} radius={0.05} userData={{ testId: `gpc-box-${gpcIdx}` }}>
-              <meshStandardMaterial color={palette.gpc} emissive={active?palette.compute:"black"} emissiveIntensity={active?0.6:0} transparent={dimOthers} opacity={dimOthers && !workloadActiveIds.includes('gpc') && selected!=='gpc'?0.25:0.95} />
+          <group key={gpcIdx} position={[x, 0, z] as any} userData={{ testId: `gpc-${gpcIdx}` }}>
+            <RoundedBox args={[1.42,0.22,0.96] as any} radius={0.06} userData={{ testId: `gpc-box-${gpcIdx}` }}>
+              <meshStandardMaterial color={palette.gpc} emissive={isGpcActive?palette.compute:"black"} emissiveIntensity={isGpcActive?0.65:0} transparent={dimOthers} opacity={dimOthers && !workloadActiveIds.includes('gpc') && selected!=='gpc' && selected!==`gpc-${gpcIdx}`?0.28:0.96} />
             </RoundedBox>
-            <group userData={{ testId: `gpc-label-${gpcIdx}` }} position={[0,0.22,0] as any}>
-              <Html center position={[0,0,0]} style={{pointerEvents:'none'}}>
-                <div className="text-[10px] font-mono text-white/60 bg-black/40 px-1 rounded">GPC{gpcIdx} {smInGpc}SM {gpcIdx===0 && spec.id==='h100-sxm5' ? '(illustrative dist 132 active)' : ''}</div>
+            {/* GPC label only – no per-SM dozens */}
+            <group userData={{ testId: `gpc-label-${gpcIdx}` }} position={[0,0.26,0] as any}>
+              <Html center position={[0,0,0]} style={{pointerEvents:'none'}} distanceFactor={6} occlude={false}>
+                <div className="text-[11px] font-mono text-white/80 bg-black/60 px-1.5 py-0.5 rounded whitespace-nowrap border border-white/10">
+                  GPC{gpcIdx} {smInGpc} SM
+                </div>
               </Html>
             </group>
-            {Array.from({length:visualSm}).map((_,smIdx)=>{
-              const trueIdx = smIdx
-              const tcActive = selected==='tensor-core' || selected==='cuda-core' || selected==='tma' || workloadActiveIds.includes('tensor-core')
-              return (
-                <group key={smIdx} position={[(smIdx%2-0.5)*0.55,0.18,(Math.floor(smIdx/2)-0.5)*0.34] as any} userData={{ testId: `sm-${gpcIdx}-${trueIdx}` }}>
-                  <RoundedBox args={[0.44,0.13,0.32] as any} radius={0.02} userData={{ testId: `sm-box-${gpcIdx}-${smIdx}` }}>
-                    <meshStandardMaterial color="#1a3a20" emissive={tcActive?palette.compute:"black"} emissiveIntensity={tcActive?0.5:0} transparent={dimOthers} opacity={dimOthers && !workloadActiveIds.includes('sm') && selected!=='sm'?0.22:0.9} />
-                  </RoundedBox>
-                  <group position={[0,0.11,0] as any} userData={{ testId: `group-tc-cc-tma-${gpcIdx}-${smIdx}` }}>
-                    <mesh position={[-0.13,0,0] as any} userData={{ testId: `tensor-core-${gpcIdx}-${smIdx}` }}>
-                      <boxGeometry args={[0.13,0.05,0.11] as any} />
-                      <meshStandardMaterial color={palette.compute} emissive={selected==='tensor-core' || workloadActiveIds.includes('tensor-core')?palette.compute:"black"} emissiveIntensity={0.4} />
-                    </mesh>
-                    <mesh position={[0,0,0] as any} userData={{ testId: `cuda-core-${gpcIdx}-${smIdx}` }}>
-                      <boxGeometry args={[0.13,0.05,0.11] as any} />
-                      <meshStandardMaterial color="#aaddaa" emissive={selected==='cuda-core'?palette.interaction:"black"} emissiveIntensity={0.2} />
-                    </mesh>
-                    <mesh position={[0.13,0,0] as any} userData={{ testId: `tma-${gpcIdx}-${smIdx}` }}>
-                      <boxGeometry args={[0.11,0.05,0.1] as any} />
-                      <meshStandardMaterial color={palette.interconnect} emissive={selected==='tma' || workloadActiveIds.includes('tma')?palette.interconnect:"black"} emissiveIntensity={0.5} transparent opacity={dimOthers && !workloadActiveIds.includes('tma') && selected!=='tma'?0.25:1} />
-                    </mesh>
+            {/* SM detail only when selected/zoomed to avoid overlap */}
+            {showSmDetail && (
+              <group userData={{ testId: `sm-detail-group-${gpcIdx}` }}>
+                {Array.from({length: Math.min(smInGpc, 6)}).map((_,smIdx)=>{
+                  const tcActive = selected==='tensor-core' || selected==='cuda-core' || selected==='tma' || selected===`sm-${gpcIdx}-${smIdx}` || workloadActiveIds.includes('tensor-core')
+                  return (
+                    <group key={smIdx} position={[(smIdx%2-0.5)*0.58,0.20,(Math.floor(smIdx/2)-0.5)*0.36] as any} userData={{ testId: `sm-${gpcIdx}-${smIdx}` }}>
+                      <RoundedBox args={[0.46,0.14,0.34] as any} radius={0.02} userData={{ testId: `sm-box-${gpcIdx}-${smIdx}` }}>
+                        <meshStandardMaterial color="#1a3a20" emissive={tcActive?palette.compute:"black"} emissiveIntensity={tcActive?0.5:0} transparent={dimOthers} opacity={0.92} />
+                      </RoundedBox>
+                      {(selected==='tensor-core' || selected==='cuda-core' || selected==='tma') && (
+                        <group position={[0,0.12,0] as any} userData={{ testId: `group-tc-cc-tma-${gpcIdx}-${smIdx}` }}>
+                          <mesh position={[-0.14,0,0] as any} userData={{ testId: `tensor-core-${gpcIdx}-${smIdx}` }}>
+                            <boxGeometry args={[0.13,0.05,0.11] as any} />
+                            <meshStandardMaterial color={palette.compute} emissive={selected==='tensor-core'?palette.compute:"black"} emissiveIntensity={0.45} />
+                          </mesh>
+                          <mesh position={[0,0,0] as any} userData={{ testId: `cuda-core-${gpcIdx}-${smIdx}` }}>
+                            <boxGeometry args={[0.13,0.05,0.11] as any} />
+                            <meshStandardMaterial color="#aaddaa" emissive={selected==='cuda-core'?palette.interaction:"black"} emissiveIntensity={0.25} />
+                          </mesh>
+                          <mesh position={[0.14,0,0] as any} userData={{ testId: `tma-${gpcIdx}-${smIdx}` }}>
+                            <boxGeometry args={[0.11,0.05,0.1] as any} />
+                            <meshStandardMaterial color={palette.interconnect} emissive={selected==='tma'?palette.interconnect:"black"} emissiveIntensity={0.55} />
+                          </mesh>
+                        </group>
+                      )}
+                    </group>
+                  )
+                })}
+                {smInGpc>6 && (
+                  <group position={[0.68,0,0] as any} userData={{ testId: `more-sm-${gpcIdx}` }}>
+                    <Html position={[0,0.22,0] as any} center style={{pointerEvents:'none'}}><div className="text-[10px] text-white/45 whitespace-nowrap">+{smInGpc-6} more</div></Html>
                   </group>
-                </group>
-              )
-            })}
-            {smInGpc>visualSm && (
-              <group position={[0.6,0,0] as any} userData={{ testId: `more-sm-${gpcIdx}` }}>
-                <Html position={[0,0.18,0] as any} center><div className="text-[10px] text-white/40">+{smInGpc-visualSm} more SMs</div></Html>
+                )}
               </group>
             )}
           </group>
@@ -256,6 +308,7 @@ export default function GPUClient({ specId }: { specId:string }){
   const workloadActiveIds = workload ? (workloadOverlays as any)[workload]?.illuminates ?? [] : []
   const dimOthers = !!workload && workloadActiveIds.length>0
   const spec = getSpecSafe(specId) as GPUSpec | null
+  const [provOpen, setProvOpen] = useState(false)
 
   useEffect(()=>{
     const handler=(e:KeyboardEvent)=>{ if(e.key==='Escape'){ clearSelection(); } }
@@ -268,7 +321,6 @@ export default function GPUClient({ specId }: { specId:string }){
     }
   },[queryView, view])
 
-  // Auto switch view based on selected part
   useEffect(()=>{
     if(!selected) return
     const def = partDefs.find((p:any)=> p.id===selected)
@@ -310,12 +362,22 @@ export default function GPUClient({ specId }: { specId:string }){
               {isSystem && <SystemView specId={specId} rackView={rackView} selected={selected} dimOthers={dimOthers} workloadActiveIds={workloadActiveIds} />}
             </SceneViewport>
 
-            <div className="absolute top-2 left-2 flex flex-col gap-1 max-w-[70%] pointer-events-auto z-10" data-testid="provenance-bar">
+            <div className="hidden md:flex absolute top-2 left-2 flex-col gap-1 max-w-[70%] pointer-events-auto z-10" data-testid="provenance-bar">
               {spec.provenance?.slice(0,4).map((p:any,i:number)=>(
-                <a key={i} href={p.sourceUrl} target="_blank" rel="noreferrer" className="text-[12px] font-mono px-2 py-1 rounded bg-black/70 border pointer-events-auto inline-flex items-center gap-1 hover:underline" style={{borderColor: p.status==='official'?'#7fee64': p.status==='speculative'?'#ff7e64':'#0ec7ff', color: p.status==='official'?'#7fee64': p.status==='speculative'?'#ff8a6b':'#0ec7ff', zIndex:10}} data-testid="provenance-badge-${p.field}">
+                <a key={i} href={p.sourceUrl} target="_blank" rel="noreferrer" className="text-[12px] font-mono px-2 py-1 rounded bg-black/70 border pointer-events-auto inline-flex items-center gap-1 hover:underline" style={{borderColor: p.status==='official'?'#7fee64': p.status==='speculative'?'#ff7e64':'#0ec7ff', color: p.status==='official'?'#7fee64': p.status==='speculative'?'#ff8a6b':'#0ec7ff', zIndex:10}} data-testid={`provenance-badge-${p.field}`}>
                   <span>{p.field} {p.value}{p.unit?` ${p.unit}`:''}</span><span className="text-[10px] opacity-80">{p.status}</span><span className="text-[10px] opacity-60">{p.asOf}</span><span className="text-[10px] underline">src↗</span>
                 </a>
               ))}
+            </div>
+            <div className="md:hidden absolute top-2 left-2 z-10 pointer-events-auto">
+              <button type="button" data-testid="provenance-toggle" onClick={()=> setProvOpen(v=>!v)} className="text-[12px] font-mono bg-black/70 border border-[#7fee64]/25 text-[#7fee64]/80 px-2 py-1 rounded">Sources ({spec.provenance?.length ?? 0})</button>
+              {provOpen && (
+                <div className="mt-1 flex flex-col gap-1 max-w-[85vw] bg-black/80 p-1 rounded border border-white/10" data-testid="provenance-sheet">
+                  {spec.provenance?.slice(0,6).map((p:any,i:number)=>(
+                    <a key={i} href={p.sourceUrl} target="_blank" rel="noreferrer" className="text-[12px] font-mono px-2 py-1 rounded bg-black/70 border inline-flex items-center gap-1" style={{borderColor:'#7fee64'}}>{p.field} {p.value}{p.unit?` ${p.unit}`:''} <span className="text-[10px] opacity-70">{p.status}</span></a>
+                  ))}
+                </div>
+              )}
             </div>
 
             {rackView && isSystem && canRack && <RackStats specId={specId} />}
@@ -327,7 +389,8 @@ export default function GPUClient({ specId }: { specId:string }){
             )}
 
             <ConditionIndicators selected={selected} />
-            <div className="absolute bottom-2 right-2 text-[12px] font-mono text-white/50" data-testid="stage-status">MODEL READY – {view.toUpperCase()} {rackView && isSystem && canRack ? '| RACK' : '| MODULE'}</div>
+            {isArch && <InspectorPanel specId={specId} selected={selected} />}
+            <div className="absolute bottom-2 right-2 text-[12px] font-mono text-white/50 pointer-events-none" data-testid="stage-status">MODEL READY – {view.toUpperCase()} {rackView && isSystem && canRack ? '| RACK' : '| MODULE'}</div>
           </div>
           <MobileBar />
           <HelpPanel />

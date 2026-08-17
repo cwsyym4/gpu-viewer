@@ -36,8 +36,8 @@ bun run test:e2e   # Playwright desktop 1280 + mobile 390
 - H100 SXM5: 12×9=108 tiles, 5× HBM3 80GB, board 8.6×4.0 mm pkg 2.78×2.72
 - B200 SXM: 14×10=140 dual-die interposer, 8× HBM3e 24GB 192GB board 8.8×4.2
 - GB200 NVL72: 16×12=192 dual-die + Grace C2C 900GB/s, 36 Grace + 72 Blackwell, rack 18 trays fog 20-80
-- Rubin R100: 18×14=252 12×HBM4 288GB
-- Rubin Ultra NVL576: 20×16=320 16×HBM4 36GB 576GB
+- Rubin R100: 18×14=252 8×HBM4 36GB=288GB (8 stacks, official preliminary)
+- Rubin Ultra NVL576: 20×16=320 16×HBM4 36GB 576GB (speculative concept)
 
 ## Tests
 
@@ -45,7 +45,7 @@ Vitest 34 + Playwright e2e MODEL READY, no GLB leak, Orbit controls, mobile 07 T
 
 ## License
 
-MIT — see LICENSE (to be added).
+MIT — see LICENSE.
 
 ---
 Original README preserved:

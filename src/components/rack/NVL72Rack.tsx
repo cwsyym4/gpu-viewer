@@ -78,16 +78,20 @@ export function NVL72Rack({ specId, workloadActiveIds, selected }: { specId?:str
           </group>
         )
       })}
-      {/* Power shelves */}
-      {Array.from({length:6}).map((_,ps)=>(
+      {/* Power shelves – 8 per DGX GB200 spec */}
+      {Array.from({length:8}).map((_,ps)=>(
         <group key={`ps-${ps}`} position={[0,-0.8-ps*0.25,0] as any} userData={{ testId: `power-shelf-${ps}` }}>
           <group userData={{ testId: `power-shelf-mesh-${ps}` }}><mesh userData={{ testId: `ps-mesh-${ps}` }}><boxGeometry args={[4.6,0.12,2.4] as any} /><meshStandardMaterial color="#1c2220" /></mesh></group>
         </group>
       ))}
-      {/* Mgmt switch */}
-      <group position={[0,9.2,0] as any} userData={{ testId: 'mgmt-switch' }}>
-        <group userData={{ testId: 'mgmt-box' }}><RoundedBox args={[2.2,0.14,0.9] as any} radius={0.02} userData={{ testId: 'mgmt-mesh' }}><meshStandardMaterial color="#222" /></RoundedBox></group>
-      </group>
+      {/* TOR switches – 2 per DGX GB200 spec */}
+      {Array.from({length:2}).map((_,tor)=>(
+        <group key={`tor-${tor}`} position={[0,9.2+tor*0.32,0] as any} userData={{ testId: `tor-switch-${tor}` }}>
+          <group userData={{ testId: `tor-box-${tor}` }}><RoundedBox args={[2.2,0.14,0.9] as any} radius={0.02} userData={{ testId: `tor-switch-mesh-${tor}` }}><meshStandardMaterial color="#222" /></RoundedBox></group>
+        </group>
+      ))}
+      {/* Legacy id compatibility for single switch test */}
+      <group position={[0,9.84,0]} visible={false} userData={{ testId: 'mgmt-switch' }} />
       <group position={[0,6.8,0] as any} userData={{ testId: 'rack-label-group' }}><Html center position={[0,0,0] as any}><div className="text-[12px] font-mono text-white/50 bg-black/50 px-2 py-1 rounded">{rack?.label ?? 'GB200 NVL72 18×4 GPUs 36 Grace 9 switch trays 72 GPUs domain 130TB/s – conceptual'}</div></Html></group>
     </group>
   )
@@ -103,20 +107,24 @@ export function RackStats({ specId }: { specId?:string }){
   if(isGB200){
     const cpusPer = superchip?.cpu?.count ?? superchip?.cpusPerSuperchip ?? 1
     const gpusPer = superchip?.gpus?.count ?? superchip?.gpusPerSuperchip ?? 2
+    const usablePerGPU = superchip?.hbm?.usableGB ? Math.round(superchip.hbm.usableGB / gpusPer) : 186
+    const totalUsable = superchip?.hbm?.usableGB ?? 372
+    const totalRaw = superchip?.hbm?.rawGB ?? superchip?.hbm?.totalGB ?? 384
+    const perGPURaw = spec?.hbm?.totalGB ?? 192
     return (
       <div data-testid="rack-stats" className="absolute bottom-2 left-2 text-[12px] bg-black/70 border border-[#7fee64]/20 p-2 rounded text-white/75 font-mono leading-[1.35] pointer-events-none">
         <div className="text-[#7fee64] font-semibold">GB200 NVL72 — 72 Blackwell GPUs fully NVLink domain 130TB/s 36 Grace CPUs 18 trays</div>
-        <div>Superchip: {cpusPer} Grace 72c + {gpusPer} Blackwell 208B ea {spec?.hbm.totalGB ?? 192} raw {superchip?.hbm.usableGB ?? 186} per GPU usable (total {superchip?.hbm.usableGB ? superchip.hbm.totalGB : 372}GB raw {superchip?.hbm.rawGB ?? 384}GB, ECC/spare) 16TB/s mem BW 3.6TB/s NVLink/superchip 900GB/s C2C</div>
-        <div>Tray: 2 Grace +4 Blackwell dual-die · Rack 18U = 72 GPUs / 36 Grace · Spine NVLink 130TB/s</div>
+        <div>Superchip: {cpusPer} Grace 72c + {gpusPer} Blackwell 208B ea {usablePerGPU} GB per GPU usable ({totalUsable} GB / {gpusPer} GPUs raw {totalRaw}GB – {perGPURaw}GB raw per GPU, ECC/spare) 16TB/s mem BW 3.6TB/s NVLink/superchip 900GB/s C2C</div>
+        <div>Tray: 2 Grace +4 Blackwell dual-die · Rack: 18×1RU compute trays (2 Grace+4 Blackwell) + 9 NVLink Switch trays + 8 power shelves + 2 TOR · Spine NVLink 130TB/s</div>
       </div>
     )
   }
   if(isRubin){
     return (
       <div data-testid="rack-stats" className="absolute bottom-2 left-2 text-[12px] bg-black/70 border border-[#0ec7ff]/30 p-2 rounded text-white/75 font-mono leading-[1.35] pointer-events-none">
-        <div className="text-[#8fe8ff] font-semibold">Vera Rubin NVL72 – 72 Rubin GPUs + 36 Vera CPUs 260TB/s NVLink6 domain 9 switch trays + 18 compute trays</div>
-        <div>BW: 22TB/s HBM4 · NVLink6 3.6TB/s/superchip · C2C 1.8TB/s · {spec?.fp8_TFLOPS ? `${spec.fp8_TFLOPS} PFLOPS FP8 dense` : '17.5 PFLOPS FP8 dense'} official July 2026 336B xtors 224 SMs</div>
-        <div>Tray: 2 Vera +4 Rubin</div>
+        <div className="text-[#8fe8ff] font-semibold">Vera Rubin NVL72 – 72 Rubin GPUs + 36 Vera CPUs 260TB/s NVLink6 domain 9 switch trays + 18 compute trays (official preliminary)</div>
+        <div>BW: 22TB/s HBM4 · NVLink6 3.6TB/s per GPU (7.2TB/s per superchip) · C2C 1.8TB/s · {spec?.fp8_TFLOPS ? `${spec.fp8_TFLOPS} PFLOPS FP8 dense` : '17.5 PFLOPS FP8 dense'} official preliminary July 2026 336B xtors 224 SMs – subject to change per NVIDIA <a href="https://www.nvidia.com/en-gb/data-center/vera-rubin-nvl72/" className="underline text-[#8fe8ff]">Vera Rubin specs↗</a></div>
+        <div>Tray: 2 Vera +4 Rubin – Rack: 18×1RU compute trays + 9 NVLink Switch trays (260TB/s domain)</div>
       </div>
     )
   }
